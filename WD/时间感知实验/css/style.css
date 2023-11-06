@@ -1,0 +1,136 @@
+body {
+    user-select: none;
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    font-family: "Microsoft YaHei", sans-serif;
+}
+
+form#jspsych-survey-html-form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    font-size: 20px;
+    text-align: initial;
+    align-content: center
+}
+
+div#groupform {
+    margin-bottom: 20px;
+}
+
+div#groupform label {
+    text-align: left;
+}
+
+div#groupform select {
+    flex: 1 1 30%;
+    font-size: 20px;
+    width: 250px;
+    height: 28px;
+}
+
+input#order,
+input#age {
+    flex: 1 1 30%;
+    font-size: 20px;
+    margin-left: 20px;
+    height: 28px;
+    width: 242px;
+}
+
+select#grade,
+select#father_edu,
+select#monther_edu {
+    margin-left: 20px;
+}
+
+input#divorce1 {
+    margin-left: 40px;
+}
+
+input#divorce0,
+input#single0,
+input#gender0 {
+    margin-left: 70px;
+}
+
+input#single1 {
+    margin-left: 80px;
+}
+
+input#gender1 {
+    margin-left: 120px;
+}
+
+input[type="radio"] {
+    display: inline-block;
+    margin-right: 5px;
+    transform: scale(1.5);
+}
+
+p#slider-label {
+    font-size: 20px;
+    margin-top: 0px;
+}
+
+label.jspsych-survey-likert-opt-label {
+    font-size: 20px;
+}
+
+label.jspsych-survey-likert-statement {
+    padding-top: 1px;
+}
+
+label.jspsych-survey-likert-statement h2 {
+    margin-bottom: 10px;
+    margin-top: 30px;
+}
+
+ul.jspsych-survey-likert-opts {
+    padding-bottom: 10px;
+}
+
+.jspsych-btn-td {
+    height: 250px;
+    width: 400px;
+    font-size: 25px;
+    font-family: 微软雅黑;
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+.jspsych-btn {
+    font-size: 16pt;
+    font-family: 微软雅黑;
+    font-weight: normal;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+input#pay_day {
+    margin-left: 230px;
+}
+input#pay_month,
+input#pay_year {
+    margin-left: 80px;
+}
+
+div.work label{
+    font-size:23px; 
+    line-height:120%; 
+    font-weight:600
+}
+
+div.work input[type="number"]{
+    font-size:20px; 
+    font-weight:600; 
+    width:100px
+}
+
+textarea {
+    font-size:20px; 
+    font-weight:500; 
+    height:30px
+}

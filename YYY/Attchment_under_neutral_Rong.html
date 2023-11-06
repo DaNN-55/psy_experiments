@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>依恋_阈下中性_相容</title>
+        <script src="js/jspsych.js"></script>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/plugin-html-keyboard-response.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+        <script src='js/plugin-fullscreen.js'></script>
+        <script src='js/plugin-survey-html-form.js'></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        const nowdate = new Date(),
+            month = nowdate.getMonth(),
+            date = nowdate.getDate(),
+            hour = nowdate.getHours(),
+            minutes = nowdate.getMinutes()
+
+        const file_name = month+1+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.get().localSave('json',`${file_name}.json`);
+            }
+        });
+
+        var enter_fullscreen = {
+            type: jsPsychFullscreen,
+            message:'<p>本次实验需要进入全屏模式，请点击下方的允许按钮</p>',
+            button_label:'允许',
+            fullscreen_mode:true
+            };
+        timeline.push(enter_fullscreen)
+
+        var cover = {
+        type:jsPsychInstructions,
+        pages:[
+            "<p style='font:bold 41px 微软雅黑; color:#B22222'>欢迎参与我们的实验</p>\
+            <p style='font:20px 微软雅黑; color:gray'><br/><br/>\
+            <b>实验过程中请勿退出</b><br/><br/>\
+            <b>点击下面的开始按钮即可开始实验</b></p>\
+            <br/><br/>",
+            ],
+        show_clickable_nav:true,
+        allow_backward:false,
+        button_label_next:'开始',
+        allow_keys:false,
+        };
+        timeline.push(cover)
+
+        var info = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "<h2 style='font:bold 40px 微软雅黑'>请先填写以下信息：</h2><br/>",
+        html: "<p style='font:bold 20px 微软雅黑'>被试序号：<input style='font:20px 微软雅黑' name='index' type='number' /></p><br/>\
+                <p style='font:bold 20px 微软雅黑'>被试姓名：<input style='font:20px 微软雅黑' name='name' type='text' /></p><br/>\
+                <p style='font:bold 20px 微软雅黑'>被试年龄：<input style='font:20px 微软雅黑' name='age' type='number' /></p><br/>\
+                <label id='man' style='font:bold 20px 微软雅黑'><input type='radio' name='gender' value='1'/>男<label>\
+                <label id='woman' style='font:bold 20px 微软雅黑'><input type='radio' name='gender' value='0'/>女</label><br/><br/><br/>",
+        button_label:'下一页',
+        dataAsArray:true,
+        autofocus: 'test-resp-box',
+        };
+        timeline.push(info);
+
+        //实验一
+        var exp1_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/zdyz.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp1_instr)
+
+        var exp1_block1_pra_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy1.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp1_block1_pra_instr)
+
+        var exp1_block1_pra = {
+            timeline: [
+            {
+                type:jsPsychHtmlKeyboardResponse,
+                stimulus: jsPsych.timelineVariable('stimulus'),
+                choices:['f','j'],
+                trial_duration:3000,
+                on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">温暖</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">美妙</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">聪明</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理诊断</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理辅导</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理评估</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">灰暗</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">罪恶</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">暴躁</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">奸诈</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">冷漠</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">吝啬</p>',correct:'j'},
+            ],
+                randomize_order: true
+            };
+        timeline.push(exp1_block1_pra)
+
+        var pra_failed = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sccxlx1.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+
+        var loop_node = {
+            timeline: [pra_failed,exp1_block1_pra_instr,exp1_block1_pra],
+            loop_function: function(data){
+                var correct_trials = jsPsych.data.get().last(12).filter({correct: true}).count();
+                if(correct_trials/12>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        var cond_node = {
+            timeline: [loop_node],
+            conditional_function: function(){
+                var correct_trials = jsPsych.data.get().last(12).filter({correct: true}).count();
+                if(correct_trials/12>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+        timeline.push(cond_node)
+
+        var exp1_block1_instr = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: '<img src="imgs/sczdy2.bmp" width="1200px" />',
+                choices: 'enter',
+            };
+            timeline.push(exp1_block1_instr)
+
+        var exp1_block1 = {
+            timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('stimulus'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">开心</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">快乐</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">积极</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">幸福</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">愉快</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">乐观</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热情</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理咨询</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理治疗</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理矫正</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理门诊</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理医生</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理救援</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理求助</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">绝望</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">痛苦</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">失败</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">恐惧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">难受</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">可怕</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">悲观</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">忧伤</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">沮丧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">愤怒</p>',correct:'j'},
+            ],
+            sample: {
+                type:'fixed-repetitions',
+                size:2
+            }
+        };
+        timeline.push(exp1_block1)
+
+        var break_time = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy3a.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(break_time);
+
+        var exp1_block2_pra_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy3b.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp1_block2_pra_instr)
+
+        var exp1_block2_pra = {
+            timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('stimulus'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct'))){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">灰暗</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">罪恶</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">烦躁</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理诊断</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理辅导</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理评估</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">温暖</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">美妙</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">聪明</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">活泼</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">舒服</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">可爱</p>',correct:'f'},
+            ],
+                randomize_order: true
+            };
+        timeline.push(exp1_block2_pra)
+
+        var loop_node = {
+            timeline: [pra_failed,exp1_block2_pra_instr,exp1_block2_pra],
+            loop_function: function(data){
+                var correct_trials = jsPsych.data.get().last(12).filter({correct: true}).count();
+                if(correct_trials/12>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        var cond_node = {
+            timeline: [loop_node],
+            conditional_function: function(){
+                var correct_trials = jsPsych.data.get().last(12).filter({correct: true}).count();
+                if(correct_trials/12>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+        timeline.push(cond_node)
+
+        var exp1_block2_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy4.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp1_block2_instr)
+
+        var exp1_block2 = {
+            timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('stimulus'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct'))){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">绝望</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">痛苦</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">失败</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">恐惧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">难受</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">可怕</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">悲观</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理咨询</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理治疗</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理矫正</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理门诊</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理医生</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理救援</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理求助</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">开心</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">快乐</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">积极</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">幸福</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">愉快</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">乐观</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热情</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">自信</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热爱</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">阳光</p>',correct:'f'},
+            ],
+            sample: {
+                type:'fixed-repetitions',
+                size:2
+            }
+        };
+        timeline.push(exp1_block2)
+
+        var exp1_over = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/scend.bmp" width="1200px" />',
+            choices: 'tab',
+        };
+        timeline.push(exp1_over)
+
+        // 实验二
+        var exp2_pra_instruction = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sazdy1.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp2_pra_instruction)
+
+        var exp2_block_pra = {
+                timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<span style="font: 80px 楷体">+</span>',
+                    choices: "NO_KEYS",
+                    trial_duration:500,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w8.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w3.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w2.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w4.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w1.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('imgs'),
+                    choices:"NO_KEYS",
+                    stimulus_duration:16,
+                    trial_duration:18,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w6.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w9.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w7.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w10.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w5.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('words'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus:'',
+                    choices:"NO_KEYS",
+                    trial_duration:500+300*Math.floor(Math.random()),
+                }
+            ],
+            timeline_variables:[
+                {imgs:'<img src="imgs/Neutral/wg102.bmp" width=600/>',words:'<p style="font: 80px 楷体">南极</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg109.jpg" width=600/>',words:'<p style="font: 80px 楷体">木鱼</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg118.bmp" width=600/>',words:'<p style="font: 80px 楷体">沧桑</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg107.jpg" width=600/>',words:'<p style="font: 80px 楷体">宽恕</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg99.bmp" width=600/>',words:'<p style="font: 80px 楷体">拐角</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg114.bmp" width=600/>',words:'<p style="font: 80px 楷体">插花</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg111.bmp" width=600/>',words:'<p style="font: 80px 楷体">茅房</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg113.bmp" width=600/>',words:'<p style="font: 80px 楷体">卧房</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg108.bmp" width=600/>',words:'<p style="font: 80px 楷体">狂欢</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg97.bmp" width=600/>',words:'<p style="font: 80px 楷体">门牌</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg103.jpg" width=600/>',words:'<p style="font: 80px 楷体">鸟巢</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg98.bmp" width=600/>',words:'<p style="font: 80px 楷体">道院</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg120.bmp" width=600/>',words:'<p style="font: 80px 楷体">丹抵</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg104.bmp" width=600/>',words:'<p style="font: 80px 楷体">斑怨</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg115.bmp" width=600/>',words:'<p style="font: 80px 楷体">塑贺</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg116.bmp" width=600/>',words:'<p style="font: 80px 楷体">户之</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg101.bmp" width=600/>',words:'<p style="font: 80px 楷体">邢黑</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg105.bmp" width=600/>',words:'<p style="font: 80px 楷体">判杜</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg117.jpg" width=600/>',words:'<p style="font: 80px 楷体">事落</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg100.bmp" width=600/>',words:'<p style="font: 80px 楷体">柯越</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg106.bmp" width=600/>',words:'<p style="font: 80px 楷体">裄喇</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg110.bmp" width=600/>',words:'<p style="font: 80px 楷体">钙雍</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg112.jpg" width=600/>',words:'<p style="font: 80px 楷体">县吸</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg119.bmp" width=600/>',words:'<p style="font: 80px 楷体">委塌</p>',correct:'j'},
+            ],
+            randomize_order: true
+        };
+        timeline.push(exp2_block_pra)
+
+        var loop_node = {
+            timeline: [pra_failed,exp2_pra_instruction,exp2_block_pra],
+            loop_function: function(data){
+                var correct_trials = jsPsych.data.get().last(336).filter({correct: true}).count();
+                if(correct_trials/24>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        var cond_node = {
+            timeline: [loop_node],
+            conditional_function: function(){
+                var correct_trials = jsPsych.data.get().last(336).filter({correct: true}).count();
+                if(correct_trials/24>0.8){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+        timeline.push(cond_node)
+
+        var exp2_instruction = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sazdy2.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp2_instruction)
+
+        var exp2_block1 = {
+                timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<span style="font: 80px 楷体">+</span>',
+                    choices:'NO_KEYS',
+                    trial_duration:500,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w8.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w3.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w2.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w4.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w1.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('imgs'),
+                    choices:'NO_KEYS',
+                    stimulus_duration:16,
+                    trial_duration:18,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w6.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w9.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w7.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w10.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w5.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('words'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus:'',
+                    choices:'NO_KEYS',
+                    trial_duration:500+300*Math.floor(Math.random()),
+                }
+            ],
+            timeline_variables:[
+            {imgs:'<img src="imgs/Neutral/wg9.bmp" width=600/>',words:'<p style="font: 80px 楷体">备课</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg95.bmp" width=600/>',words:'<p style="font: 80px 楷体">辍学</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg45.bmp" width=600/>',words:'<p style="font: 80px 楷体">例句</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg89.bmp" width=600/>',words:'<p style="font: 80px 楷体">棱台</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg53.bmp" width=600/>',words:'<p style="font: 80px 楷体">点菜</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg74.bmp" width=600/>',words:'<p style="font: 80px 楷体">歌谱</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg29.jpg" width=600/>',words:'<p style="font: 80px 楷体">鸟雀</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg85.bmp" width=600/>',words:'<p style="font: 80px 楷体">铲车</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg19.jpg" width=600/>',words:'<p style="font: 80px 楷体">银器</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg6.bmp" width=600/>',words:'<p style="font: 80px 楷体">古琴</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg28.bmp" width=600/>',words:'<p style="font: 80px 楷体">肩胛</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg61.bmp" width=600/>',words:'<p style="font: 80px 楷体">纷繁</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg51.jpg" width=600/>',words:'<p style="font: 80px 楷体">灯油</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg70.jpg" width=600/>',words:'<p style="font: 80px 楷体">丰腴</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg44.bmp" width=600/>',words:'<p style="font: 80px 楷体">扉页</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg46.bmp" width=600/>',words:'<p style="font: 80px 楷体">陨石</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg68.jpg" width=600/>',words:'<p style="font: 80px 楷体">禾苗</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg62.jpg" width=600/>',words:'<p style="font: 80px 楷体">唠嗑</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg93.bmp" width=600/>',words:'<p style="font: 80px 楷体">牙床</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg10.bmp" width=600/>',words:'<p style="font: 80px 楷体">表哥</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg77.bmp" width=600/>',words:'<p style="font: 80px 楷体">抚恤</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg76.jpg" width=600/>',words:'<p style="font: 80px 楷体">车库</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg88.jpg" width=600/>',words:'<p style="font: 80px 楷体">明灯</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg47.bmp" width=600/>',words:'<p style="font: 80px 楷体">君内</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg83.jpg" width=600/>',words:'<p style="font: 80px 楷体">乐颇</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg78.jpg" width=600/>',words:'<p style="font: 80px 楷体">米易</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg87.bmp" width=600/>',words:'<p style="font: 80px 楷体">后为</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg82.bmp" width=600/>',words:'<p style="font: 80px 楷体">蒙轮</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg55.jpg" width=600/>',words:'<p style="font: 80px 楷体">及却</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg36.bmp" width=600/>',words:'<p style="font: 80px 楷体">棠氓</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg14.bmp" width=600/>',words:'<p style="font: 80px 楷体">但本</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg66.jpg" width=600/>',words:'<p style="font: 80px 楷体">切理</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg52.bmp" width=600/>',words:'<p style="font: 80px 楷体">橱谅</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg22.bmp" width=600/>',words:'<p style="font: 80px 楷体">粮许</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg35.bmp" width=600/>',words:'<p style="font: 80px 楷体">彪悔</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg7.bmp" width=600/>',words:'<p style="font: 80px 楷体">品亿</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg38.bmp" width=600/>',words:'<p style="font: 80px 楷体">和甲</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg63.bmp" width=600/>',words:'<p style="font: 80px 楷体">盟今</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg73.bmp" width=600/>',words:'<p style="font: 80px 楷体">生奕</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg94.jpg" width=600/>',words:'<p style="font: 80px 楷体">接亮</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg32.jpg" width=600/>',words:'<p style="font: 80px 楷体">补昨</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg57.bmp" width=600/>',words:'<p style="font: 80px 楷体">美决</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg5.jpg" width=600/>',words:'<p style="font: 80px 楷体">陶育</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg34.jpg" width=600/>',words:'<p style="font: 80px 楷体">考留</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg39.bmp" width=600/>',words:'<p style="font: 80px 楷体">庚多</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg81.jpg" width=600/>',words:'<p style="font: 80px 楷体">维虽</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg54.bmp" width=600/>',words:'<p style="font: 80px 楷体">认旺</p>',correct:'j'},
+            ],
+            randomize_order: true
+        };
+        timeline.push(exp2_block1)
+
+        var break_time = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sarest.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(break_time);
+
+        var exp2_block2 = {
+                timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<span style="font: 80px 楷体">+</span>',
+                    choices:'NO_KEYS',
+                    trial_duration:500,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w3.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w4.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w2.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w3.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w1.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('imgs'),
+                    choices:'NO_KEYS',
+                    stimulus_duration:16,
+                    trial_duration:18,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w5.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w1.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w2.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w3.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: '<img src="imgs/b_w1.jpg" width=600/>',
+                    choices:'NO_KEYS',
+                    trial_duration:16,
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('words'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                },
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus:'',
+                    choices:'NO_KEYS',
+                    trial_duration:500+300*Math.floor(Math.random()),
+                }
+            ],
+            timeline_variables:[
+            {imgs:'<img src="imgs/Neutral/wg9.bmp" width=600/>',words:'<p style="font: 80px 楷体">备课</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg95.bmp" width=600/>',words:'<p style="font: 80px 楷体">辍学</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg45.bmp" width=600/>',words:'<p style="font: 80px 楷体">例句</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg89.bmp" width=600/>',words:'<p style="font: 80px 楷体">棱台</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg53.bmp" width=600/>',words:'<p style="font: 80px 楷体">点菜</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg74.bmp" width=600/>',words:'<p style="font: 80px 楷体">歌谱</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg29.jpg" width=600/>',words:'<p style="font: 80px 楷体">鸟雀</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg85.bmp" width=600/>',words:'<p style="font: 80px 楷体">铲车</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg19.jpg" width=600/>',words:'<p style="font: 80px 楷体">银器</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg6.bmp" width=600/>',words:'<p style="font: 80px 楷体">古琴</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg28.bmp" width=600/>',words:'<p style="font: 80px 楷体">肩胛</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg61.bmp" width=600/>',words:'<p style="font: 80px 楷体">纷繁</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg51.jpg" width=600/>',words:'<p style="font: 80px 楷体">灯油</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg70.jpg" width=600/>',words:'<p style="font: 80px 楷体">丰腴</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg44.bmp" width=600/>',words:'<p style="font: 80px 楷体">扉页</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg46.bmp" width=600/>',words:'<p style="font: 80px 楷体">陨石</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg68.jpg" width=600/>',words:'<p style="font: 80px 楷体">禾苗</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg62.jpg" width=600/>',words:'<p style="font: 80px 楷体">唠嗑</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg93.bmp" width=600/>',words:'<p style="font: 80px 楷体">牙床</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg10.bmp" width=600/>',words:'<p style="font: 80px 楷体">表哥</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg77.bmp" width=600/>',words:'<p style="font: 80px 楷体">抚恤</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg76.jpg" width=600/>',words:'<p style="font: 80px 楷体">车库</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg88.jpg" width=600/>',words:'<p style="font: 80px 楷体">明灯</p>',correct:'f'},
+                {imgs:'<img src="imgs/Neutral/wg47.bmp" width=600/>',words:'<p style="font: 80px 楷体">君内</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg83.jpg" width=600/>',words:'<p style="font: 80px 楷体">乐颇</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg78.jpg" width=600/>',words:'<p style="font: 80px 楷体">米易</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg87.bmp" width=600/>',words:'<p style="font: 80px 楷体">后为</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg82.bmp" width=600/>',words:'<p style="font: 80px 楷体">蒙轮</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg55.jpg" width=600/>',words:'<p style="font: 80px 楷体">及却</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg36.bmp" width=600/>',words:'<p style="font: 80px 楷体">棠氓</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg14.bmp" width=600/>',words:'<p style="font: 80px 楷体">但本</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg66.jpg" width=600/>',words:'<p style="font: 80px 楷体">切理</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg52.bmp" width=600/>',words:'<p style="font: 80px 楷体">橱谅</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg22.bmp" width=600/>',words:'<p style="font: 80px 楷体">粮许</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg35.bmp" width=600/>',words:'<p style="font: 80px 楷体">彪悔</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg7.bmp" width=600/>',words:'<p style="font: 80px 楷体">品亿</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg38.bmp" width=600/>',words:'<p style="font: 80px 楷体">和甲</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg63.bmp" width=600/>',words:'<p style="font: 80px 楷体">盟今</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg73.bmp" width=600/>',words:'<p style="font: 80px 楷体">生奕</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg94.jpg" width=600/>',words:'<p style="font: 80px 楷体">接亮</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg32.jpg" width=600/>',words:'<p style="font: 80px 楷体">补昨</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg57.bmp" width=600/>',words:'<p style="font: 80px 楷体">美决</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg5.jpg" width=600/>',words:'<p style="font: 80px 楷体">陶育</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg34.jpg" width=600/>',words:'<p style="font: 80px 楷体">考留</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg39.bmp" width=600/>',words:'<p style="font: 80px 楷体">庚多</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg81.jpg" width=600/>',words:'<p style="font: 80px 楷体">维虽</p>',correct:'j'},
+                {imgs:'<img src="imgs/Neutral/wg54.bmp" width=600/>',words:'<p style="font: 80px 楷体">认旺</p>',correct:'j'},
+            ],
+            randomize_order: true
+        };
+        timeline.push(exp2_block2)
+
+        var exp2_end = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/saend.bmp" width="1200px" />',
+            choices: 'tab',
+        };
+        timeline.push(exp2_end)
+
+        // 实验三
+        var exp3_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy5.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp3_instr)
+
+        var exp3_block1 = {
+            timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('stimulus'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">开心</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">快乐</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">积极</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">幸福</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">愉快</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">乐观</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热情</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理咨询</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理治疗</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理矫正</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理门诊</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理医生</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理救援</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">心理求助</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">绝望</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">痛苦</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">失败</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">恐惧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">难受</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">可怕</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">悲观</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">忧伤</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">沮丧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">愤怒</p>',correct:'j'},
+            ],
+            sample: {
+                type:'fixed-repetitions',
+                size:2
+            }
+        };
+        timeline.push(exp3_block1)
+
+        var break_time = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy6.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(break_time);
+
+        var exp3_block2_instr = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/sczdy7.bmp" width="1200px" />',
+            choices: 'enter',
+        };
+        timeline.push(exp3_block2_instr);
+
+        var exp3_block2 = {
+            timeline: [
+                {
+                    type:jsPsychHtmlKeyboardResponse,
+                    stimulus: jsPsych.timelineVariable('stimulus'),
+                    choices:['F','J'],
+                    trial_duration:3000,
+                    on_finish: function(data){
+                    if(jsPsych.pluginAPI.compareKeys(data.response,jsPsych.timelineVariable('correct') )){
+                        data.correct = true;
+                        } else {
+                        data.correct = false; 
+                        }
+                    }
+                }
+            ],
+            timeline_variables:[
+                {stimulus:'<p style="font: 80px 楷体">绝望</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">痛苦</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">失败</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">恐惧</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">难受</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">可怕</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">悲观</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理咨询</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理治疗</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理矫正</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理门诊</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理医生</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理救援</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">心理求助</p>',correct:'j'},
+                {stimulus:'<p style="font: 80px 楷体">开心</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">快乐</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">积极</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">幸福</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">愉快</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">乐观</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热情</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">自信</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">热爱</p>',correct:'f'},
+                {stimulus:'<p style="font: 80px 楷体">阳光</p>',correct:'f'},
+            ],
+            sample: {
+                type:'fixed-repetitions',
+                size:2
+            }
+        };
+        timeline.push(exp3_block2)
+
+        var exp3_over = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<img src="imgs/end.bmp" width="1200px" />',
+            choices: 'tab',
+        };
+        timeline.push(exp3_over)
+
+        var exit_fullscreen = {
+            type: jsPsychFullscreen,
+            fullscreen_mode: false,
+            delay_after: 0
+        };
+        timeline.push(exit_fullscreen)
+
+        jsPsych.run(timeline)
+    </script>
+</html>

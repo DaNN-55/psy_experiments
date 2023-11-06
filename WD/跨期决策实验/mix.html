@@ -1,0 +1,3013 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>decision-mix</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="css/decision.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-fullscreen.js"></script>
+        <script src="js/plugin-html-button-response.js"></script>
+        <script src="js/plugin-html-keyboard-response.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+        <script src="js/plugin-preload.js"></script>
+        <script src="js/plugin-survey-html-form.js"></script>
+        <script src="js/plugin-survey-text.js"></script>
+        <script src="js/plugin-browser-check.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const jsPsych = initJsPsych({
+        // on_finish: function() {
+        //     jsPsych.data.displayData('json')
+        // }
+    });
+
+    var set_style = {
+        type: jsPsychCallFunction,
+        func: function () {
+            document.body.style.backgroundColor = 'black' // background color
+            document.body.style.color = 'white' // font color
+            document.body.style.fontFamily = '微软雅黑'
+            document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+            document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+            document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+            document.onkeydown = function () {
+                // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                    (event.ctrlKey && event.keyCode in { 85: 'U' })
+                ) {
+                    return false
+                }
+            }
+        },
+    }
+    
+    var brower = {
+        type: jsPsychBrowserCheck,
+        minimum_width: 1000,
+        minimum_height: 600,
+        window_resize_message:'你的浏览器窗口过小，请使用电脑作答，感谢配合。<br/>点击下方按钮即可结束实验。',
+        resize_fail_button_text: '结束实验',
+        exclusion_message: () => { return '你的显示窗口过小，请调大显示窗口或者切换电脑作答。' }
+    };
+
+    var enter_fullscreen = {
+        type: jsPsychFullscreen,
+        message: `
+        <p style="font: 16pt 微软雅黑; text-align: left; line-height: 1.6em">
+        <b>
+        测验将在一个「全屏页面」开始，为确保最佳效果，请你：<br/>
+        （1）在电脑上进行测验，并使用主流浏览器打开本网页<br/>
+        &emsp;&emsp;（Chrome、Edge、Firefox、Safari等，不要用IE）<br/>
+        （2）关掉电脑上其他正在运行的程序或将其最小化<br/>
+        （3）将手机调至静音，并尽可能减少环境噪音干扰<br/>
+        （4）在测验过程中不要退出全屏<br/>
+        （5）务必认真作答<br/><br/>
+        </b>
+        如果你同意参与，并且清楚理解了上述要求，请点击开始：
+        </p>`,
+        button_label:'点击这里全屏开始',
+        fullscreen_mode: true,
+        delay_after: 100
+    }
+
+    var exit_fullscreen = {
+        type: jsPsychFullscreen,
+        fullscreen_mode: false,
+        delay_after: 0,
+    }
+
+    var cover = {
+        type: jsPsychInstructions,
+        pages: [
+            `<div class='cover'>
+                <div class='cover-title'>
+                    大学生心理健康调查
+                </div>
+                <div class='cover-text'>
+                    <p>这是一个大学生心理健康方面的小调查，需要你回答一些日常生活中可能发生的决策，这些问题没有正确答案，每一个答案仅仅反映了你的个人偏好。</p>
+                    <p>在答题过程中请勿使用计算器，每个选择不需要耗费太多思考时间，请凭借自己的第一感觉作答。<p>
+                    <p>我们承诺所有数据仅用作学术研究，不会泄露关于您的任何隐私，因此答题过程中请务必认真作答。</p>
+                </div>
+                <input class="form-check-input" type="checkbox" id='checkbox'>
+                <label class="form-check-label">
+                    我已理解上述内容，同意开始评测
+                </label>
+            </div>`,
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+        on_load: function () {
+            var submitBtn = document.getElementById('jspsych-instructions-next');
+            submitBtn.disabled = true;
+            var box = document.getElementById('checkbox');
+            box.addEventListener("change", function(){
+                if (box.checked===true) {
+                    submitBtn.disabled=false;
+                }else{
+                    submitBtn.disabled=true;
+                }
+            })
+        }
+    };
+
+    var info = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "",
+        html: ` <p class='h2' style='color:black'>基本信息</p>
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>姓名</span>
+                                <input class='form-control' type='text' name='name' required/>
+                            </div>
+                        </div>
+                    
+                        <div class='col auto'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>学号</span>
+                                <input class='form-control' type='number' name='order' required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>性别</span>
+                                <select class='form-select' name='gender' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>男</option>
+                                    <option value='0'>女</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>利手</span>
+                                <select class='form-select' name='hands' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>左</option>
+                                    <option value='0'>右</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>年龄</span>
+                                <input class='form-control' type='number' name='age' required/>
+                            </div>
+                        </div>
+
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>年级</span>
+                                <select class='form-select' name='grade' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>大一</option>
+                                    <option value='2'>大二</option>
+                                    <option value='3'>大三</option>
+                                    <option value='4'>大四</option>
+                                    <option value='5'>研一</option>
+                                    <option value='6'>研二</option>
+                                    <option value='7'>研三</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>婚姻状况</span>
+                                <select class='form-select' name='marriage' required/>
+                                    <option value=''></option>
+                                    <option value='0'>未婚</option>
+                                    <option value='1'>已婚</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>独生子女</span>
+                                <select class='form-select' name='single' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>是</option>
+                                    <option value='0'>否</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>工作经历</span>
+                                <select class='form-select' name='work-exp' required>
+                                <option value=''></option>
+                                <option value='0'>从未工作过</option>
+                                <option value='1'>当前没有工作，有工作经验</option>
+                                <option value='2'>当前有兼职工作</option>
+                                <option value='3'>当前有全职工作</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>成瘾行为</span>
+                                <select class='form-select' name='addiction' required/>        
+                                    <option value=''></option>
+                                    <option value='0'>无任何成瘾行为</option>
+                                    <option value='1'>只有烟瘾</option>
+                                    <option value='2'>只有酒瘾</option>
+                                    <option value='3'>既有烟瘾也有酒瘾</option>
+                                    <option value='4'>有其他成瘾行为</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>父亲学历</span>
+                                <select class='form-select' name='father-edu' required/>
+                                <option value=''></option>
+                                <option value='1'>小学及以下</option>
+                                <option value='2'>初中</option>
+                                <option value='3'>高中/中专/技校</option>
+                                <option value='4'>大专</option>
+                                <option value='5'>大学本科</option>
+                                <option value='6'>研究生及以上</option>
+                            </select>
+                            </div>
+                        </div>
+
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>母亲学历</span>
+                                <select class='form-select' name='monther-edu' required/>
+                                <option value=''></option>
+                                <option value='1'>小学及以下</option>
+                                <option value='2'>初中</option>
+                                <option value='3'>高中/中专/技校</option>
+                                <option value='4'>大专</option>
+                                <option value='5'>大学本科</option>
+                                <option value='6'>研究生及以上</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>父母离异</span>
+                                <select class='form-select' name='divorce' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>是</option>
+                                    <option value='0'>否</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>家庭年收入 </span>
+                                <select class='form-select' name='income' required/>
+                                <option value=''></option>
+                                <option value='1'>小于3万元</option>
+                                <option value='2'>3~8万元</option>
+                                <option value='3'>9~14万元</option>
+                                <option value='4'>15~20万元</option>
+                                <option value='5'>20万元以上</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-2'>
+                                <span class='input-group-text'>户籍性质</span>
+                                <select class='form-select' name='home' required>
+                                <option value=''></option>
+                                <option value='0'>农村户口</option>
+                                <option value='1'>城镇户口</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`,
+        button_label: '提交',
+        dataAsArray: true,
+        autofocus: 'test-resp-box',
+        data:{task:'info'},
+    };
+
+    var pre_emotion = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:  `<div class='instruction'>
+                    请评价一下你目前的情绪状况
+                    <p class='tips'><分数越低表示你现在越悲伤，分数越高表示你现在越愉悦></p>
+                </div>
+                <div class='row mb-4'>
+                    <div class='btn-group'>
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_1' value='1' required>
+                        <label class='btn btn-outline-primary' for='pre_emotion_1'>1</label>
+                        
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_2' value='2'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_2'>2</label>
+
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_3' value='3'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_3'>3</label>
+
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_4' value='4'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_4'>4</label>
+
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_5' value='5'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_5'>5</label>
+
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_6' value='6'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_6'>6</label>
+
+                        <input type='radio' class='btn-check' name='pre_emotion' id='pre_emotion_7' value='7'>
+                        <label class='btn btn-outline-primary' for='pre_emotion_7'>7</label>
+                    </div>
+                </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'pre_emotion'}
+    };
+
+    var initial_instruction = {
+        type: jsPsychInstructions,
+        pages: [
+            `<div class='cover'>
+                <p class='h1'>第一部分</p>
+                <div class='cover-text'>
+                    该部分你需要阅读一组新闻，
+                    请仔细阅读和体会新闻所表达的含义，尽量将自己代入到新闻所表达的场景中，
+                    将自己作为场景中的一员。阅读完毕后会结合新闻给你的感受回答几个相关问题，
+                    每当阅读完一则新闻后请点击<span style='color:#c72626'>键盘【方向右键→】</span>换页，阅读过程中可以随时点击<span style='color:#c72626'>【方向左键←】</span>进行回看。
+                </div>
+                <div class='ready'><如果准备好了，请点击开始👇></div>
+            </div>`
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };  
+        
+    var preload = {
+        type: jsPsychPreload,
+        images: [
+             'imgs/postive/discrimination_pos_4.jpg','imgs/postive/diseases_pos_1.jpg','imgs/postive/fair_pos_1.jpg','imgs/postive/food_pos_1.jpg',
+             'imgs/postive/green_pos_2.jpg','imgs/postive/house_pos_4.jpg','imgs/postive/income_pos_1.jpg','imgs/postive/information_pos_4.jpg',
+             'imgs/postive/medical_pos_3.jpg','imgs/postive/reading_pos_4.jpg','imgs/postive/security_pos_2.jpg','imgs/postive/water_pos_4.jpg',
+             'imgs/negtive/discrimination_neg_1.jpg','imgs/negtive/discrimination_neg_3.jpg','imgs/negtive/diseases_neg_3.jpg','imgs/negtive/education_neg_4.jpg',
+             'imgs/negtive/food_neg_1.jpg','imgs/negtive/garbage_neg_3.jpg','imgs/negtive/food_neg_1.jpg','imgs/negtive/house_neg_1.jpg','imgs/negtive/income_neg_2.jpg',
+             'imgs/negtive/information_neg_1.jpg','imgs/negtive/medical_neg_4.jpg','imgs/negtive/reading_neg_2.jpg','imgs/negtive/water_neg_4.jpg',
+             'imgs/netural/Items_1.jpg','imgs/netural/Items_14.jpg','imgs/netural/Items_16.jpg','imgs/netural/Items_18.jpg','imgs/netural/Items_2.jpg','imgs/netural/Items_20.jpg',
+             'imgs/netural/Items_21.jpg','imgs/netural/Items_23.jpg','imgs/netural/Items_24.jpg','imgs/netural/Items_3.jpg','imgs/netural/Items_5.jpg','imgs/netural/Items_6.jpg',
+              'imgs/ladder.png'],
+        message: '正在加载程序，请稍后。。。',
+        error_message: '请刷新页面重新加载',
+        show_detailed_errors: true
+    }
+        
+    pos_imgs = [
+            '<img class="initial-imgs"src="imgs/postive/discrimination_pos_4.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/diseases_pos_1.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/fair_pos_1.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/food_pos_1.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/green_pos_2.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/house_pos_4.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/income_pos_1.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/information_pos_4.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/medical_pos_3.jpg"></img>', 
+            '<img class="initial-imgs" src="imgs/postive/reading_pos_4.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/security_pos_2.jpg"></img>',
+            '<img class="initial-imgs" src="imgs/postive/water_pos_4.jpg"></img>'
+            ]
+
+    var initial_pos_imgs = {
+        type: jsPsychInstructions,
+        pages:jsPsych.randomization.shuffle(pos_imgs),
+        show_clickable_nav: false,
+    }
+
+    var pos_text = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:`
+            <div class='instruction'>
+                你认为共同富裕的社会是个什么样子，请举几个具体事例。
+                <p class='tips'>（至少写5个具体事件）</p>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" name='pos_text' required></textarea>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'pos_text'}
+    }
+    
+        
+    neg_imgs = [
+      '<img class="initial-imgs" src="imgs/negtive/discrimination_neg_1.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/discrimination_neg_3.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/diseases_neg_3.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/education_neg_4.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/food_neg_1.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/garbage_neg_3.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/house_neg_1.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/income_neg_2.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/information_neg_1.jpg"></img>', 
+      '<img class="initial-imgs" src="imgs/negtive/medical_neg_4.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/reading_neg_2.jpg"></img>',
+      '<img class="initial-imgs" src="imgs/negtive/water_neg_4.jpg"></img>'
+      ]
+    
+
+    var initial_neg_imgs = {
+        type: jsPsychInstructions,
+        pages:jsPsych.randomization.shuffle(neg_imgs),
+        show_clickable_nav: false,
+    }
+
+    var neg_text = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:`
+            <div class='instruction'>
+            你认为资源稀缺的社会是个什么样子，请举几个具体事例。
+            <p class='tips'>（至少写5个具体事件）</p>
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" name='neg_text' required></textarea>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'neg_text'}
+    }
+    
+    netrual_imgs = [
+        '<img class="initial-imgs" src="imgs/netural/Items_1.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_14.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_16.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_18.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_2.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_20.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_21.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_23.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_24.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_3.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_5.jpg"></img>',
+        '<img class="initial-imgs" src="imgs/netural/Items_6.jpg"></img>'
+        ]
+    
+    var initial_netrual_imgs = {
+        type: jsPsychInstructions,
+        pages:jsPsych.randomization.shuffle(netrual_imgs),
+        show_clickable_nav: false,
+    }
+
+    var netrual_text = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:`
+            <div class='instruction'>
+            请描述一下乘坐火车或者高铁的具体步骤。
+            </div>
+            <div class="mb-3">
+                <textarea class="form-control" name='neutral_text' required></textarea>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'netrual_text'}
+    }
+    
+    var if_pos = {
+        timeline: [initial_pos_imgs,pos_text],
+        conditional_function: function(){
+            var order = jsPsych.data.get().filter({task:'info'}).trials[0].response[1].value
+            if(order.slice(-2) <= 15 && order%2 == 0){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    var if_neg = {
+        timeline: [initial_neg_imgs,neg_text],
+        conditional_function: function(){
+            var order = jsPsych.data.get().filter({task:'info'}).trials[0].response[1].value
+            if(order.slice(-2) <= 15 && order%2 == 1){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    
+    var if_netrual = {
+        timeline: [initial_netrual_imgs, netrual_text],
+        conditional_function: function(){
+            var order = jsPsych.data.get().filter({task:'info'}).trials[0].response[1].value
+            if(order.slice(-2) > 15){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    var imgs_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: ``,
+        html:`<div class='instruction'>
+                    请对你刚才看完这组新闻的感受进行评分<br/>
+                    分数越低代表该维度程度越低，分数越高代表该维度程度越高
+                    <p class='tips'><请先将鼠标移到相应的维度阅读详细解释后再选择></p>
+                </div>  
+                <div class='row'>
+                    <div class="input-group mb-3">
+                        <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='看完这些新闻，如果你感到社会是富裕的，则评分越高，如果感到社会是贫穷的，则评分越低'>
+                            富裕度   
+                        </div>
+                        <div class="btn-group col-lg-10">
+                            <input type="radio" class="btn-check" name="rich" id='rich_1' value='1' required>
+                            <label class="btn btn-outline-primary" for="rich_1">1</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_2' value='2'>
+                            <label class="btn btn-outline-primary" for="rich_2">2</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_3' value='3'>
+                            <label class="btn btn-outline-primary" for="rich_3">3</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_4' value='4'>
+                            <label class="btn btn-outline-primary" for="rich_4">4</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_5' value='5'>
+                            <label class="btn btn-outline-primary" for="rich_5">5</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_6' value='6'>
+                            <label class="btn btn-outline-primary" for="rich_6">6</label>
+
+                            <input type="radio" class="btn-check" name="rich" id='rich_7' value='7'>
+                            <label class="btn btn-outline-primary" for="rich_7">7</label>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class="input-group mb-3">
+                        <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='看完这些新闻，如果你感到社会是平等的，则评分越高，如果感到社会是不平等的，则评分越低'>
+                            公平感
+                        </div>
+                        <div class="btn-group col-lg-10">
+                            <input type="radio" class="btn-check" name="fair" id='fair_1' value='1' required>
+                            <label class="btn btn-outline-primary" for="fair_1">1</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_2' value='2'>
+                            <label class="btn btn-outline-primary" for="fair_2">2</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_3' value='3'>
+                            <label class="btn btn-outline-primary" for="fair_3">3</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_4' value='4'>
+                            <label class="btn btn-outline-primary" for="fair_4">4</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_5' value='5'>
+                            <label class="btn btn-outline-primary" for="fair_5">5</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_6' value='6'>
+                            <label class="btn btn-outline-primary" for="fair_6">6</label>
+
+                            <input type="radio" class="btn-check" name="fair" id='fair_7' value='7'>
+                            <label class="btn btn-outline-primary" for="fair_7">7</label>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class="input-group mb-3">
+                        <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='看完这些新闻，如果你感到社会是可持续发展的（在满足当前需要的同时，不能以牺牲后代利益为代价），则评分越高，如果感到社会发展是不可持续的，则评分越低'>
+                            可持续性  
+                        </div>
+                        <div class="btn-group col-lg-10">
+                            <input type="radio" class="btn-check" name="continue" id='continue_1' value='1' required>
+                            <label class="btn btn-outline-primary" for="continue_1">1</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_2' value='2'>
+                            <label class="btn btn-outline-primary" for="continue_2">2</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_3' value='3'>
+                            <label class="btn btn-outline-primary" for="continue_3">3</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_4' value='4'>
+                            <label class="btn btn-outline-primary" for="continue_4">4</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_5' value='5'>
+                            <label class="btn btn-outline-primary" for="continue_5">5</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_6' value='6'>
+                            <label class="btn btn-outline-primary" for="continue_6">6</label>
+
+                            <input type="radio" class="btn-check" name="continue" id='continue_7' value='7'>
+                            <label class="btn btn-outline-primary" for="continue_7">7</label>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class="input-group mb-3">
+                        <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='看完这些新闻，如果你感社会是共同富裕的，则评分越高，如果没有感到社会是共同富裕的，则评分越低'>
+                            共同富裕  
+                        </div>
+                        <div class="btn-group col-lg-10">
+                            <input type="radio" class="btn-check" name="common" id='common_1' value='1' required>
+                            <label class="btn btn-outline-primary" for="common_1">1</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_2' value='2'>
+                            <label class="btn btn-outline-primary" for="common_2">2</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_3' value='3'>
+                            <label class="btn btn-outline-primary" for="common_3">3</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_4' value='4'>
+                            <label class="btn btn-outline-primary" for="common_4">4</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_5' value='5'>
+                            <label class="btn btn-outline-primary" for="common_5">5</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_6' value='6'>
+                            <label class="btn btn-outline-primary" for="common_6">6</label>
+
+                            <input type="radio" class="btn-check" name="common" id='common_7' value='7'>
+                            <label class="btn btn-outline-primary" for="common_7">7</label>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class="input-group mb-3">
+                        <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='如果看完这些新闻，你感受到的情绪越积极，评分越高，感受到的情绪越消极，评分越低'>
+                            情绪状况  
+                        </div>
+                        <div class="btn-group col-lg-10">
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_1' value='1' required>
+                            <label class="btn btn-outline-primary" for="emotion_1">1</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_2' value='2'>
+                            <label class="btn btn-outline-primary" for="emotion_2">2</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_3' value='3'>
+                            <label class="btn btn-outline-primary" for="emotion_3">3</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_4' value='4'>
+                            <label class="btn btn-outline-primary" for="emotion_4">4</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_5' value='5'>
+                            <label class="btn btn-outline-primary" for="emotion_5">5</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_6' value='6'>
+                            <label class="btn btn-outline-primary" for="emotion_6">6</label>
+
+                            <input type="radio" class="btn-check" name="emotion" id='emotion_7' value='7'>
+                            <label class="btn btn-outline-primary" for="emotion_7">7</label>
+                        </div>
+                    </div>
+                </div>`,
+        button_label: '下一页',
+        dataAsArray: true,
+        on_load: function () {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        },
+        data:{task:'img_scale'}
+    };
+
+    var conf = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:  `<div class='instruction'>
+                    请评价一下你对之前那组新闻的相信程度
+                    <p class='tips'><分数越低表示你越不相信，分数越高表示你越相信></p>
+                </div>
+                <div class='row mb-4'>
+                    <div class='btn-group'>
+                        <input type='radio' class='btn-check' name='conf' id='conf_1' value='1' required>
+                        <label class='btn btn-outline-primary' for='conf_1'>1</label>
+                        
+                        <input type='radio' class='btn-check' name='conf' id='conf_2' value='2'>
+                        <label class='btn btn-outline-primary' for='conf_2'>2</label>
+
+                        <input type='radio' class='btn-check' name='conf' id='conf_3' value='3'>
+                        <label class='btn btn-outline-primary' for='conf_3'>3</label>
+
+                        <input type='radio' class='btn-check' name='conf' id='conf_4' value='4'>
+                        <label class='btn btn-outline-primary' for='conf_4'>4</label>
+
+                        <input type='radio' class='btn-check' name='conf' id='conf_5' value='5'>
+                        <label class='btn btn-outline-primary' for='conf_5'>5</label>
+
+                        <input type='radio' class='btn-check' name='conf' id='conf_6' value='6'>
+                        <label class='btn btn-outline-primary' for='conf_6'>6</label>
+
+                        <input type='radio' class='btn-check' name='conf' id='conf_7' value='7'>
+                        <label class='btn btn-outline-primary' for='conf_7'>7</label>
+                    </div>
+                </div>`,
+        button_label: '结束',
+        autofocus: 'test-resp-box',
+        data:{task:'conf'}
+    };
+
+    var part_two_instruction = {
+        type: jsPsychInstructions,
+        pages: [`<div class='cover'>
+                    <p class='h1'>第二部分</p>
+                    <div class='cover-text'>
+                        该部分需要你在两种结果之间进行多次选择，选择过程中两种结果的顺序会随机呈现，所以请看仔细，一旦选择便无法更改。所有结果都是假设的，
+                        但请像真实情境一样做出选择。该部分一共包含两种情况，请仔细阅读每一部分的指导语，带入指导语的情境中去做选择。
+                    </div>
+                    <div class='ready'><如果准备好了，请点击开始👇></div>
+                </div>`
+            ],
+        button_label_next: '开始',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+    var origin_time_cover = {
+        type: jsPsychInstructions,
+        pages: [
+                `<p class='h2'>①</p>
+                    <div class='instruction' style='color:white'>
+                        请你想象一下，你将获得一笔钱，你需要在以下两种方式之间进行选择，你会选择哪种方式？
+                    </div>
+                    <div class='option'>
+                        <p>A：现在获得一笔数额较小的钱</p>
+                        <p>B：等待一段时间后获得一笔数额较大的钱</p>
+                </div>
+                <div class='ready'><如果理解了上述指导语，请点击👇></div>`
+            ],
+        button_label_next: '下一页',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+    var work_time_cover = {
+        type: jsPsychInstructions,
+        pages: [
+                `<p class='h2'>②</p>
+                    <div class='instruction' style='color:white'>
+                        请你想象一下，你现在是一名刚入职一年的公司职员，有一天你的领导通知你，由于公司需要重新进行财务规划，
+                        需要每个人重新选择工资的获得方式，你需要在以下两种方式之间做选择，你会选择哪种？
+                    </div>
+                    <div class='option'>
+                        <p>A：在工作还未开始前获得一笔较小的工资</p>
+                        <p>B：在工作完全结束后获得一笔较大的工资</p>
+                </div>`
+            ],
+        button_label_next: '开始',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+    var part_three_instruction = {
+        type: jsPsychInstructions,
+        pages: [`<div class='cover'>
+                    <p class='h1'>第三部分</p>
+                    <div class='cover-text'>
+                        该部分同样需要你在两种结果之间进行多次选择，选择过程中两种结果的顺序会随机呈现，所以请看仔细，一旦选择便无法更改。所有结果都是假设的，
+                        但请像真实情境一样做出选择。该部分一共包含三种情况，请仔细阅读每一部分的指导语，带入指导语的情境中去做选择。
+                    </div>
+                    <div class='ready'><如果准备好了，请点击开始👇></div>
+                </div>`
+            ],
+        button_label_next: '开始',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+    var origin_odd_cover = {
+        type: jsPsychInstructions,
+        pages: [
+                `<p class='h2'>①</p>
+                    <div class='instruction' style='color:white'>
+                        请你想象一下，你将获得一笔钱，你需要在以下两种方式之间进行选择，你会选择哪种方式？
+                    </div>
+                    <div class='option'>
+                        <p>A：固定获得一笔数额较小的钱</p>
+                        <p>B：有一定概率获得一笔数额较大的钱</p>
+                </div>`
+            ],
+        button_label_next: '下一页',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+
+    var work_odd_cover = {
+        type: jsPsychInstructions,
+        pages: [
+                `<p class='h2'>②</p>
+                    <div class='instruction' style='color:white'>
+                        请你想象一下，你现在是一名刚入职一年的公司职员，有一天你的领导通知你，由于公司需要重新进行财务规划，
+                        需要每个人重新选择以下工资的获得方式，你需要在以下两种方式之间做选择，你会选择哪种？
+                    </div>
+                    <div class='option'>
+                        <p>A：每月固定获得一笔数额较小的工资</p>
+                        <p>B：每月考核成绩超过部分相同职位的同期员工后获得一笔数额较大的工资</p>
+                </div>`
+            ],
+        button_label_next: '下一页',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+
+    var work2_odd_cover = {
+        type: jsPsychInstructions,
+        pages: [
+                `<p class='h2'>③</p>
+                    <div class='instruction' style='color:white'>
+                        请你想象一下，你现在是一名刚入职一年的公司职员，有一天你的领导通知你，由于公司需要重新进行财务规划，
+                        需要每个人重新选择工资的获得方式，你需要在以下两种方式之间做选择，你会选择哪种？
+                    </div>
+                    <br/>
+                    <div class='option'>
+                        <p>A：每月固定获得一笔数额较小的工资</p>
+                        <p>B：除每月固定获得一笔固定数额的工资外，如果考核成绩超过部分相同职位的同期员工还将额外获得一笔数额较大的奖金</p>
+                </div>`
+            ],
+        button_label_next: '开始',
+        show_clickable_nav: true,
+        allow_backward: false,
+    }
+
+    function main_trail(timeline_variables) {
+        var trails = {
+            timeline : [
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: jsPsych.timelineVariable('instruction'),
+                    choices: [function () {
+                                var html =
+                                    `<div class='choice-describe'>
+                                        <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                        <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                    </div>`
+                                return html;
+                                },
+                                function () {
+                                    var html =
+                                        `<div class='choice-describe'>
+                                            <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                            <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                        </div>`
+                                    return html
+                                },
+                            ],
+                    button_html : `<button class="btn btn-light btn-lg">%choice%</button>`,
+                    on_finish: function (data) {
+                        let sdr = jsPsych.timelineVariable('values').slice(-1)[0]
+                        let ldr = jsPsych.timelineVariable('values')[0]
+
+                        let response = jsPsych.data.get().last(1).values()[0].response
+                        let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                        if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                            sdr_2 = Math.round(sdr - 0.25*ldr)
+                        } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                            sdr_2 = Math.round(sdr + 0.25*ldr)
+                            };
+
+                        data.task =  jsPsych.timelineVariable('task')
+                        data.SDR_2 = sdr_2
+                        data.SDR_1 = sdr
+                        data.LDR = ldr
+                        jsPsych.timelineVariable('values').push(sdr_2)
+                    },
+                    save_trial_parameters: {
+                        choices: true,
+                        stimulus: false,
+                    }
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: jsPsych.timelineVariable('instruction'),
+                    choices: function () {
+                        var button_choices = [
+                            `<div class='choice-describe'>
+                                <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                            </div>`,
+                            `<div class='choice-describe'>
+                                <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                            </div>`
+                        ];
+                        return jsPsych.randomization.shuffle(button_choices);
+                    },
+                    button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                    on_finish: function (data) {
+                        let ldr = jsPsych.timelineVariable('values')[0]
+                        let sdr_2 = jsPsych.timelineVariable('values').slice(-1)[0]
+                        let response = jsPsych.data.get().last(1).values()[0].response
+                        let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                        if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                            sdr_3 = Math.round(sdr_2 - 0.125*ldr)
+                        } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                            sdr_3 = Math.round(sdr_2 + 0.125*ldr)
+                            };
+                        
+                        data.task =  jsPsych.timelineVariable('task')
+                        data.SDR_3 = sdr_3
+                        jsPsych.timelineVariable('values').push(sdr_3)
+                    },
+                    save_trial_parameters: {
+                        choices: true,
+                        stimulus: false
+                    }
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: jsPsych.timelineVariable('instruction'),
+                    choices: function () {
+                        var button_choices = [
+                            `<div class='choice-describe'>
+                                <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                            </div>`,
+                            `<div class='choice-describe'>
+                                <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                            </div>`
+                        ];
+                        return jsPsych.randomization.shuffle(button_choices);
+                    },
+                    button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                    on_finish: function (data) {
+                        let ldr = jsPsych.timelineVariable('values')[0]
+                        let sdr_3 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                        let response = jsPsych.data.get().last(1).values()[0].response
+                        let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                        if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                            sdr_4 = Math.round(sdr_3 - 0.0625*ldr)
+                        } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                            sdr_4 = Math.round(sdr_3 + 0.0625*ldr)
+                            };
+
+                        data.task =  jsPsych.timelineVariable('task')
+                        data.SDR_4 = sdr_4
+                        jsPsych.timelineVariable('values').push(sdr_4)
+                    },
+                    save_trial_parameters: {
+                        choices: true,
+                        stimulus: false
+                    }
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: jsPsych.timelineVariable('instruction'),
+                    choices: function () {
+                        var button_choices = [
+                            `<div class='choice-describe'>
+                                <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                            </div>`,
+                            `<div class='choice-describe'>
+                                <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                            </div>`
+                        ];
+                        return jsPsych.randomization.shuffle(button_choices);
+                    },
+                    button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                    on_finish: function (data) {
+                        let ldr = jsPsych.timelineVariable('values')[0]
+                        let sdr_4 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                        let response = jsPsych.data.get().last(1).values()[0].response
+                        let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                        if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                            sdr_5 = Math.round(sdr_4 - 0.03125*ldr)
+                        } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                            sdr_5 = Math.round(sdr_4 + 0.03125*ldr)
+                            };
+
+                        data.task =  jsPsych.timelineVariable('task')
+                        data.SDR_5 = sdr_5
+                        jsPsych.timelineVariable('values').push(sdr_5)
+                    },
+                    save_trial_parameters: {
+                        choices: true,
+                        stimulus: false
+                    }
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: jsPsych.timelineVariable('instruction'),
+                    choices: function () {
+                        var button_choices = [
+                            `<div class='choice-describe'>
+                                <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                            </div>`,
+                            `<div class='choice-describe'>
+                                <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                            </div>`
+                        ];
+                        return jsPsych.randomization.shuffle(button_choices);
+                    },
+                    button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                    on_finish: function (data) {
+                        let ldr = jsPsych.timelineVariable('values')[0]
+                        let sdr_5 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                        let response = jsPsych.data.get().last(1).values()[0].response
+                        let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                        if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                            sdr_6 = Math.round(sdr_5 - 0.015625*ldr)
+                        } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                            sdr_6 = Math.round(sdr_5 + 0.015625*ldr)
+                            };
+
+                        data.task =  jsPsych.timelineVariable('task')
+                        data.SDR_6 = sdr_6
+                        jsPsych.timelineVariable('values').push(sdr_6)
+                    },
+                    save_trial_parameters: {
+                        choices: true,
+                        stimulus: false
+                    }
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: `<div class='spinner-border text-light m-5' role='status'><span class='visually-hidden'>loading</span></div> `,
+                    choices: "NO_KEYS",
+                    trial_duration: 1000,
+                }
+            ],
+            timeline_variables: timeline_variables,
+            randomize_order:true,
+            post_trial_gap: 400
+        };
+        return trails
+    }
+
+    var scale_instr = {
+        type: jsPsychInstructions,
+        pages: [
+            `<div class='cover'>
+                <p class='h2'>最后一部分</p>
+                <div class='cover-text'>
+                    接下来你需要填写几份问卷，回答完毕后，请点击下一页。只有完整回答完该页问题后才可进入下一页，进入下一页后，将无法返回上一页。</p>
+                </div>
+                <p class='ready'>
+                    <如果准备好了请点击开始👇>
+                </p>
+            </div>`,
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };
+
+
+    var Cses_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html: `<div class='instruction'>请仔细阅读每一个问题，选择与你童年时期最符合的选项</div>
+            <div class='row mb-4'>
+                <label class="form-label">1. 童年时家庭有足够多的钱来满足各种需求。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_11' value='1' required>
+                    <label class='btn btn-outline-primary' for='Cses_11'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_12' value='2'>
+                    <label class='btn btn-outline-primary' for='Cses_12'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_13' value='3'>
+                    <label class='btn btn-outline-primary' for='Cses_13'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_14' value='4'>
+                    <label class='btn btn-outline-primary' for='Cses_14'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_15' value='5'>
+                    <label class='btn btn-outline-primary' for='Cses_15'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_16' value='6'>
+                    <label class='btn btn-outline-primary' for='Cses_16'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_1' id='Cses_17' value='7'>
+                    <label class='btn btn-outline-primary' for='Cses_17'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label" style='color:black'>2. 童年时, 父母在当地有较高的社会地位。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_21' value='1' required>
+                    <label class='btn btn-outline-primary' for='Cses_21'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_22' value='2'>
+                    <label class='btn btn-outline-primary' for='Cses_22'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_23' value='3'>
+                    <label class='btn btn-outline-primary' for='Cses_23'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_24' value='4'>
+                    <label class='btn btn-outline-primary' for='Cses_24'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_25' value='5'>
+                    <label class='btn btn-outline-primary' for='Cses_25'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_26' value='6'>
+                    <label class='btn btn-outline-primary' for='Cses_26'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_2' id='Cses_27' value='7'>
+                    <label class='btn btn-outline-primary' for='Cses_27'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label" style='color:black'>3. 相比于童年的伙伴, 我的生活更加富足。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_31' value='1' required>
+                    <label class='btn btn-outline-primary' for='Cses_31'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_32' value='2'>
+                    <label class='btn btn-outline-primary' for='Cses_32'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_33' value='3'>
+                    <label class='btn btn-outline-primary' for='Cses_33'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_34' value='4'>
+                    <label class='btn btn-outline-primary' for='Cses_34'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_35' value='5'>
+                    <label class='btn btn-outline-primary' for='Cses_35'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_36' value='6'>
+                    <label class='btn btn-outline-primary' for='Cses_36'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_3' id='Cses_37' value='7'>
+                    <label class='btn btn-outline-primary' for='Cses_37'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label" style='color:black'>4. 我成长在一个富足稳定的小区环境中。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_41' value='1' required>
+                    <label class='btn btn-outline-primary' for='Cses_41'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_42' value='2'>
+                    <label class='btn btn-outline-primary' for='Cses_42'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_43' value='3'>
+                    <label class='btn btn-outline-primary' for='Cses_43'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_44' value='4'>
+                    <label class='btn btn-outline-primary' for='Cses_44'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_45' value='5'>
+                    <label class='btn btn-outline-primary' for='Cses_45'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_46' value='6'>
+                    <label class='btn btn-outline-primary' for='Cses_46'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Cses_4' id='Cses_47' value='7'>
+                    <label class='btn btn-outline-primary' for='Cses_47'>非常同意</label>
+                </div>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'Cses'}
+    }
+
+    var Unpre_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html: `
+            <div class='instruction'>
+                下面是一些描述家庭问题以及解决家庭问题方式的句子。在您作答时，请在脑海中回忆您18岁之前成长所在的家庭是否符合这些陈述。
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">1. 我妈妈每天都会花时间在每个孩子身上。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_1' id='Unpre_11' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_11'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_1' id='Unpre_12' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_12'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_1' id='Unpre_13' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_13'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_1' id='Unpre_14' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_14'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_1' id='Unpre_15' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_15'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">2. 我爸爸每天都会花时间在每个孩子身上。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_2' id='Unpre_21' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_21'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_2' id='Unpre_22' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_22'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_2' id='Unpre_23' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_23'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_2' id='Unpre_24' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_24'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_2' id='Unpre_25' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_25'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">3. 我们家从周一到周五吃晚饭都很准时。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_3' id='Unpre_31' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_31'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_3' id='Unpre_32' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_32'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_3' id='Unpre_33' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_33'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_3' id='Unpre_34' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_34'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_3' id='Unpre_35' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_35'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">4. 我受伤时会第一时间找妈妈处理伤口。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_4' id='Unpre_41' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_41'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_4' id='Unpre_42' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_42'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_4' id='Unpre_43' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_43'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_4' id='Unpre_44' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_44'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_4' id='Unpre_45' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_45'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">5. 我受伤时会第一时间找爸爸处理伤口。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_5' id='Unpre_51' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_51'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_5' id='Unpre_52' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_52'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_5' id='Unpre_53' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_53'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_5' id='Unpre_54' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_54'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_5' id='Unpre_55' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_55'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">6. 我的父母不能确定每个月的家庭开支从哪来。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_6' id='Unpre_61' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_61'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_6' id='Unpre_62' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_62'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_6' id='Unpre_63' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_63'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_6' id='Unpre_64' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_64'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_6' id='Unpre_65' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_65'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">7. 我们家吃饭的时间很难预测。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_7' id='Unpre_71' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_71'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_7' id='Unpre_72' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_72'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_7' id='Unpre_73' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_73'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_7' id='Unpre_74' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_74'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_7' id='Unpre_75' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_75'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">8. 我能依靠我妈妈接送我到该去的地方。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_8' id='Unpre_81' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_81'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_8' id='Unpre_82' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_82'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_8' id='Unpre_83' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_83'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_8' id='Unpre_84' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_84'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_8' id='Unpre_85' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_85'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">9. 我能依靠我爸爸接送我到该去的地方。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_9' id='Unpre_91' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_91'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_9' id='Unpre_92' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_92'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_9' id='Unpre_93' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_93'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_9' id='Unpre_94' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_94'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_9' id='Unpre_95' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_95'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">10. 我妈妈在特定情况下的行为取决于她的情绪。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_10' id='Unpre_101' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_101'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_10' id='Unpre_102' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_102'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_10' id='Unpre_103' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_103'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_10' id='Unpre_104' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_104'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_10' id='Unpre_105' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_105'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">11. 我爸爸在特定情况下的行为取决于他的情绪。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_11' id='Unpre_111' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_111'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_11' id='Unpre_112' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_112'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_11' id='Unpre_113' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_113'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_11' id='Unpre_114' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_114'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_11' id='Unpre_115' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_115'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">12. 我们家总是有足够的钱来购买食物、支付租金或还贷款。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_12' id='Unpre_121' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_121'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_12' id='Unpre_122' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_122'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_12' id='Unpre_123' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_123'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_12' id='Unpre_124' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_124'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_12' id='Unpre_125' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_125'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">13. 我伤心时会找妈妈寻求安慰。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_13' id='Unpre_131' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_131'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_13' id='Unpre_132' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_132'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_13' id='Unpre_133' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_133'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_13' id='Unpre_134' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_134'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_13' id='Unpre_135' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_135'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">14. 我伤心时会找爸爸寻求安慰。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_14' id='Unpre_141' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_141'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_14' id='Unpre_142' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_142'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_14' id='Unpre_143' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_143'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_14' id='Unpre_144' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_144'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_14' id='Unpre_145' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_145'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">15. 有时我妈妈不假思索地对我大喊大叫。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_15' id='Unpre_151' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_151'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_15' id='Unpre_152' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_152'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_15' id='Unpre_153' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_153'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_15' id='Unpre_154' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_154'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_15' id='Unpre_155' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_155'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">16.有时我爸爸不假思索地对我大喊大叫。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_16' id='Unpre_161' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_161'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_16' id='Unpre_162' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_162'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_16' id='Unpre_163' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_163'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_16' id='Unpre_164' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_164'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_16' id='Unpre_165' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_165'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">17. 从周一到周五我家总是同一些人在一起吃晚饭。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_17' id='Unpre_171' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_171'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_17' id='Unpre_172' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_172'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_17' id='Unpre_173' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_173'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_17' id='Unpre_174' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_174'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_17' id='Unpre_175' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_175'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">18. 我妈妈总是让我知道我对她很重要。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_18' id='Unpre_181' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_181'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_18' id='Unpre_182' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_182'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_18' id='Unpre_183' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_183'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_18' id='Unpre_184' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_184'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_18' id='Unpre_185' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_185'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">19. 我爸爸总是让我知道我对他很重要。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_19' id='Unpre_191' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_191'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_19' id='Unpre_192' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_192'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_19' id='Unpre_193' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_193'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_19' id='Unpre_194' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_194'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_19' id='Unpre_195' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_195'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">20. 在我调皮时妈妈是否管教我取决于她当时的心情。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_20' id='Unpre_201' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_201'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_20' id='Unpre_202' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_202'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_20' id='Unpre_203' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_203'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_20' id='Unpre_204' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_204'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_20' id='Unpre_205' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_205'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">21. 在我调皮时爸爸是否管教我取决于他当时的心情。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_21' id='Unpre_211' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_211'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_21' id='Unpre_212' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_212'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_21' id='Unpre_213' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_213'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_21' id='Unpre_214' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_214'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_21' id='Unpre_215' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_215'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">22. 遇到困扰时我会告诉妈妈。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_22' id='Unpre_221' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_221'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_22' id='Unpre_222' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_222'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_22' id='Unpre_223' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_223'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_22' id='Unpre_224' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_224'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_22' id='Unpre_225' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_225'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">23. 遇到困扰时我会告诉爸爸。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_23' id='Unpre_231' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_231'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_23' id='Unpre_232' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_232'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_23' id='Unpre_233' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_233'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_23' id='Unpre_234' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_234'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_23' id='Unpre_235' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_235'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">24. 我家里人在工作日自己单独吃饭比起聚在一起吃饭更容易。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_24' id='Unpre_241' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_241'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_24' id='Unpre_242' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_242'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_24' id='Unpre_243' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_243'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_24' id='Unpre_244' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_244'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_24' id='Unpre_245' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_245'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">25. 我无法预料我妈妈在不同情境里的行为。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_25' id='Unpre_251' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_251'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_25' id='Unpre_252' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_252'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_25' id='Unpre_253' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_253'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_25' id='Unpre_254' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_254'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_25' id='Unpre_255' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_255'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">26. 我无法预料我爸爸在不同情境里的行为。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_26' id='Unpre_261' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_261'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_26' id='Unpre_262' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_262'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_26' id='Unpre_263' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_263'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_26' id='Unpre_264' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_264'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_26' id='Unpre_265' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_265'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">27. 我家里人会不吃早饭就出门。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_27' id='Unpre_271' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_271'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_27' id='Unpre_272' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_272'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_27' id='Unpre_273' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_273'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_27' id='Unpre_274' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_274'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_27' id='Unpre_275' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_275'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">28. 我们家有的月份有很多钱消费，有的月份却很穷。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Unpre_28' id='Unpre_281' value='1' required>
+                    <label class='btn btn-outline-primary' for='Unpre_281'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Unpre_28' id='Unpre_282' value='2'>
+                    <label class='btn btn-outline-primary' for='Unpre_282'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_28' id='Unpre_283' value='3'>
+                    <label class='btn btn-outline-primary' for='Unpre_283'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_28' id='Unpre_284' value='4'>
+                    <label class='btn btn-outline-primary' for='Unpre_284'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Unpre_28' id='Unpre_285' value='5'>
+                    <label class='btn btn-outline-primary' for='Unpre_285'>非常同意</label>
+                </div>
+            </div>`,
+            
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'Unpre'}
+    }
+
+    var ladder_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html: `
+            <div class='instruction'>请把这个梯子想象成人们在社会中所处的位置；在梯子的顶端是生活最好的人，那些拥有最多的钱，最多的教育，和最好的工作；
+                    底层是那些最穷的人，那些拥有最少的钱，最少的教育，和没有工作的人。</div>
+            <img class='ladder' src='ladder.png'>
+            <div class='row mb-4'>
+                <label class="form-label">1. 请选出最能代表你<span style='color:red; font-weight:bold'>童年</span>所处位置的层级。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_1' value='1' required>
+                    <label class='btn btn-outline-primary' for='Csses_1'>1</label>
+                    
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_2' value='2'>
+                    <label class='btn btn-outline-primary' for='Csses_2'>2</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_3' value='3'>
+                    <label class='btn btn-outline-primary' for='Csses_3'>3</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_4' value='4'>
+                    <label class='btn btn-outline-primary' for='Csses_4'>4</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_5' value='5'>
+                    <label class='btn btn-outline-primary' for='Csses_5'>5</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_6' value='6'>
+                    <label class='btn btn-outline-primary' for='Csses_6'>6</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_7' value='7'>
+                    <label class='btn btn-outline-primary' for='Csses_7'>7</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_8' value='8'>
+                    <label class='btn btn-outline-primary' for='Csses_8'>8</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_9' value='9'>
+                    <label class='btn btn-outline-primary' for='Csses_9'>9</label>
+
+                    <input type='radio' class='btn-check' name='Csses' id='Csses_10' value='10'>
+                    <label class='btn btn-outline-primary' for='Csses_10'>10</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">2. 请选出最能代表你<span style='color:red; font-weight:bold'>现在</span>所处位置的层级。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_1' value='1' required>
+                    <label class='btn btn-outline-primary' for='Psses_1'>1</label>
+                    
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_2' value='2'>
+                    <label class='btn btn-outline-primary' for='Psses_2'>2</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_3' value='3'>
+                    <label class='btn btn-outline-primary' for='Psses_3'>3</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_4' value='4'>
+                    <label class='btn btn-outline-primary' for='Psses_4'>4</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_5' value='5'>
+                    <label class='btn btn-outline-primary' for='Psses_5'>5</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_6' value='6'>
+                    <label class='btn btn-outline-primary' for='Psses_6'>6</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_7' value='7'>
+                    <label class='btn btn-outline-primary' for='Psses_7'>7</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_8' value='8'>
+                    <label class='btn btn-outline-primary' for='Psses_8'>8</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_9' value='9'>
+                    <label class='btn btn-outline-primary' for='Psses_9'>9</label>
+
+                    <input type='radio' class='btn-check' name='Psses' id='Psses_10' value='10'>
+                    <label class='btn btn-outline-primary' for='Psses_10'>10</label>
+                </div>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'ladder'}
+    }
+
+    var Pses_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:`<div class='instruction'>请仔细阅读每一道题，选择和你现在最符合的选项</div>
+            <div class='row mb-4'>
+                <label class="form-label">1. 我有足够的钱买我想要的东西。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_11' value='1' required>
+                    <label class='btn btn-outline-primary' for='Pses_11'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_12' value='2'>
+                    <label class='btn btn-outline-primary' for='Pses_12'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_13' value='3'>
+                    <label class='btn btn-outline-primary' for='Pses_13'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_14' value='4'>
+                    <label class='btn btn-outline-primary' for='Pses_14'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_15' value='5'>
+                    <label class='btn btn-outline-primary' for='Pses_15'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_16' value='6'>
+                    <label class='btn btn-outline-primary' for='Pses_16'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_1' id='Pses_17' value='7'>
+                    <label class='btn btn-outline-primary' for='Pses_17'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">2. 我不太需要担心支付我的账单。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_21' value='1' required>
+                    <label class='btn btn-outline-primary' for='Pses_21'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_22' value='2'>
+                    <label class='btn btn-outline-primary' for='Pses_22'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_23' value='3'>
+                    <label class='btn btn-outline-primary' for='Pses_23'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_24' value='4'>
+                    <label class='btn btn-outline-primary' for='Pses_24'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_25' value='5'>
+                    <label class='btn btn-outline-primary' for='Pses_25'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_26' value='6'>
+                    <label class='btn btn-outline-primary' for='Pses_26'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_2' id='Pses_27' value='7'>
+                    <label class='btn btn-outline-primary' for='Pses_27'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">3. 我想我以后不用太担心钱了。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_31' value='1' required>
+                    <label class='btn btn-outline-primary' for='Pses_31'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_32' value='2'>
+                    <label class='btn btn-outline-primary' for='Pses_32'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_33' value='3'>
+                    <label class='btn btn-outline-primary' for='Pses_33'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_34' value='4'>
+                    <label class='btn btn-outline-primary' for='Pses_34'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_35' value='5'>
+                    <label class='btn btn-outline-primary' for='Pses_35'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_36' value='6'>
+                    <label class='btn btn-outline-primary' for='Pses_36'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Pses_3' id='Pses_37' value='7'>
+                    <label class='btn btn-outline-primary' for='Pses_37'>非常同意</label>
+                </div>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'Pses'}
+    }
+
+    var Work_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: ``,
+        html: `<p class='instruction' style='color:black'>
+                    请想象你现在是一名刚毕业正在找工作的大学生
+                </p>
+                <div class='row'>
+                    <label class='form-label'>1. 以月薪为例，对于你的第一份工作，<span style='color:red; font-weight:bold'>理想</span>的起始薪资水平为</label>
+                    <div class='input-group mb-3'>
+                        <input type='number' class='form-control' name='hope_money' required>
+                        <span class="input-group-text">元</span>
+                    </div>
+                </div>
+                <div class='row'>
+                    <label class='form-label'>2. 以月薪为例，对于你的第一份工作，<span style='color:red; font-weight:bold'>最低可接受</span>的起始薪资为</label>
+                    <div class='input-group mb-3'>
+                        <input type='number' class='form-control' name='accept_money' required>
+                        <span class="input-group-text">元</span>
+                    </div>
+                </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'work'}
+    };
+
+    var Impul_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: ``,
+        html: `<div class='instruction'>请仔细阅读每一个问题，选择最符合自己的选项</div>
+            <div class='row mb-4'>
+                <label class="form-label">1. 我认真安排每一件事。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_1' id='Imp_11' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_11'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_1' id='Imp_12' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_12'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_1' id='Imp_13' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_13'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_1' id='Imp_14' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_14'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_1' id='Imp_15' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_15'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">2. 我做事不加思考。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_2' id='Imp_21' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_21'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_2' id='Imp_22' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_22'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_2' id='Imp_23' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_23'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_2' id='Imp_24' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_24'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_2' id='Imp_25' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_25'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">3. 遇到问题时我能想出好办法。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_3' id='Imp_31' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_31'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_3' id='Imp_32' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_32'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_3' id='Imp_33' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_33'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_3' id='Imp_34' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_34'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_3' id='Imp_35' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_35'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">4. 我对未来有计划。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_4' id='Imp_41' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_41'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_4' id='Imp_42' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_42'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_4' id='Imp_43' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_43'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_4' id='Imp_44' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_44'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_4' id='Imp_45' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_45'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">5. 我不能很好的控制自己的行为。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_5' id='Imp_51' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_51'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_5' id='Imp_52' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_52'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_5' id='Imp_53' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_53'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_5' id='Imp_54' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_54'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_5' id='Imp_55' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_55'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">6. 必要时我能够长时间考虑一个问题。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_6' id='Imp_61' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_61'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_6' id='Imp_62' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_62'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_6' id='Imp_63' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_63'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_6' id='Imp_64' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_64'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_6' id='Imp_65' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_65'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">7. 我有规律的存钱或攒钱。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_7' id='Imp_71' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_71'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_7' id='Imp_72' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_72'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_7' id='Imp_73' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_73'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_7' id='Imp_74' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_74'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_7' id='Imp_75' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_75'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">8. 我难以控制自己的脾气。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_8' id='Imp_81' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_81'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_8' id='Imp_82' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_82'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_8' id='Imp_83' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_83'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_8' id='Imp_84' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_84'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_8' id='Imp_85' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_85'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">9. 我能从不同的角度考虑问题。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_9' id='Imp_91' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_91'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_9' id='Imp_92' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_92'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_9' id='Imp_93' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_93'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_9' id='Imp_94' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_94'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_9' id='Imp_95' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_95'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">10. 我对工作和获得的收入有计划。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_10' id='Imp_101' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_101'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_10' id='Imp_102' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_102'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_10' id='Imp_103' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_103'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_10' id='Imp_104' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_104'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_10' id='Imp_105' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_105'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">11. 我说话不加思考。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_11' id='Imp_111' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_111'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_11' id='Imp_112' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_112'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_11' id='Imp_113' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_113'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_11' id='Imp_114' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_114'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_11' id='Imp_115' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_115'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">12. 遇到问题时我喜欢慢慢考虑。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_12' id='Imp_121' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_121'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_12' id='Imp_122' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_122'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_12' id='Imp_123' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_123'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_12' id='Imp_124' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_124'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_12' id='Imp_125' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_125'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">13. 我做事比较理智。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_13' id='Imp_131' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_131'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_13' id='Imp_132' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_132'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_13' id='Imp_133' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_133'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_13' id='Imp_134' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_134'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_13' id='Imp_135' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_135'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">14. 我激动时难以控制自己的行为。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_14' id='Imp_141' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_141'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_14' id='Imp_142' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_142'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_14' id='Imp_143' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_143'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_14' id='Imp_144' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_144'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_14' id='Imp_145' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_145'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">15. 遇到问题时我可以耐心地思考解决问题的方法。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_15' id='Imp_151' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_151'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_15' id='Imp_152' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_152'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_15' id='Imp_153' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_153'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_15' id='Imp_154' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_154'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_15' id='Imp_155' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_155'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">16. 我有规律的安排饮食起居。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_16' id='Imp_161' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_161'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_16' id='Imp_162' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_162'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_16' id='Imp_163' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_163'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_16' id='Imp_164' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_164'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_16' id='Imp_165' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_165'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">17. 我容易冲动行事。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_17' id='Imp_171' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_171'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_17' id='Imp_172' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_172'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_17' id='Imp_173' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_173'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_17' id='Imp_174' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_174'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_17' id='Imp_175' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_175'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">18. 做决定前，我喜欢仔细考虑得失。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_18' id='Imp_181' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_181'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_18' id='Imp_182' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_182'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_18' id='Imp_183' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_183'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_18' id='Imp_184' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_184'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_18' id='Imp_185' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_185'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">19. 我离开家之前把事情都安排好。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_19' id='Imp_191' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_191'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_19' id='Imp_192' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_192'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_19' id='Imp_193' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_193'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_19' id='Imp_194' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_194'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_19' id='Imp_195' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_195'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">20. 我不考虑后果而立即行动。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_20' id='Imp_201' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_201'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_20' id='Imp_202' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_202'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_20' id='Imp_203' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_203'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_20' id='Imp_204' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_204'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_20' id='Imp_205' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_205'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">21. 我冷静地思考问题。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_21' id='Imp_211' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_211'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_21' id='Imp_212' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_212'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_21' id='Imp_213' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_213'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_21' id='Imp_214' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_214'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_21' id='Imp_215' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_215'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">22. 我做事时能按计划完成。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_22' id='Imp_221' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_221'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_22' id='Imp_222' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_222'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_22' id='Imp_223' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_223'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_22' id='Imp_224' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_224'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_22' id='Imp_225' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_225'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">23. 我容易冲动性购物。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_23' id='Imp_231' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_231'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_23' id='Imp_232' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_232'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_23' id='Imp_233' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_233'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_23' id='Imp_234' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_234'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_23' id='Imp_235' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_235'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">24. 遇到难题时我不会轻易下结论。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_24' id='Imp_241' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_241'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_24' id='Imp_242' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_242'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_24' id='Imp_243' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_243'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_24' id='Imp_244' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_244'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_24' id='Imp_245' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_245'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">25. 我花钱有计划。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_25' id='Imp_251' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_251'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_25' id='Imp_252' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_252'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_25' id='Imp_253' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_253'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_25' id='Imp_254' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_254'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_25' id='Imp_255' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_255'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">26. 我做事十分莽撞。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_26' id='Imp_261' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_261'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_26' id='Imp_262' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_262'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_26' id='Imp_263' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_263'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_26' id='Imp_264' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_264'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_26' id='Imp_265' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_265'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">27. 我思考问题时能集中注意力。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_27' id='Imp_271' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_271'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_27' id='Imp_272' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_272'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_27' id='Imp_273' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_273'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_27' id='Imp_274' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_274'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_27' id='Imp_275' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_275'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">28. 我很看重对未来的安排。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_28' id='Imp_281' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_281'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_28' id='Imp_282' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_282'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_28' id='Imp_283' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_283'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_28' id='Imp_284' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_284'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_28' id='Imp_285' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_285'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">29. 我想到什么就马上去做。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_29' id='Imp_291' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_291'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_29' id='Imp_292' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_292'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_29' id='Imp_293' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_293'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_29' id='Imp_294' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_294'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_29' id='Imp_295' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_295'>总是</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">30. 我容易想出新的办法来解决遇到的困难。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Imp_30' id='Imp_301' value='1' required>
+                    <label class='btn btn-outline-primary' for='Imp_301'>从无</label>
+                    
+                    <input type='radio' class='btn-check' name='Imp_30' id='Imp_302' value='2'>
+                    <label class='btn btn-outline-primary' for='Imp_302'>极少</label>
+
+                    <input type='radio' class='btn-check' name='Imp_30' id='Imp_303' value='3'>
+                    <label class='btn btn-outline-primary' for='Imp_303'>有时</label>
+
+                    <input type='radio' class='btn-check' name='Imp_30' id='Imp_304' value='4'>
+                    <label class='btn btn-outline-primary' for='Imp_304'>经常</label>
+
+                    <input type='radio' class='btn-check' name='Imp_30' id='Imp_305' value='5'>
+                    <label class='btn btn-outline-primary' for='Imp_305'>总是</label>
+                </div>
+            </div>`,
+        button_label: '结束',
+        autofocus: 'test-resp-box',
+        data:{task:'Impul'}
+    }
+
+    var Prl_scale = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: '',
+        html:`<div class='instruction'>请仔细阅读每一道题，选择和你现在最符合的选项</div>
+            <div class='row mb-4'>
+                <label class="form-label">1. 我的心理生活是丰富的。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_11' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_11'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_12' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_12'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_13' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_13'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_14' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_14'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_15' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_15'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_16' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_16'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_1' id='Prl_17' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_17'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">2. 我的生活经历是丰富的。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_21' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_21'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_22' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_22'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_23' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_23'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_24' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_24'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_25' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_25'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_26' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_26'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_2' id='Prl_27' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_27'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">3. 我的情感生活是丰富的。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_31' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_31'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_32' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_32'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_33' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_33'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_34' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_34'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_35' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_35'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_36' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_36'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_3' id='Prl_37' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_37'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">4. 我有过很多有趣的经历。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_41' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_41'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_42' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_42'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_43' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_43'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_44' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_44'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_45' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_45'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_46' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_46'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_4' id='Prl_47' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_47'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">5. 我有过很多新奇的经历。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_51' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_51'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_52' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_52'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_53' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_53'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_54' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_54'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_55' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_55'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_56' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_56'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_5' id='Prl_57' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_57'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">6. 我的生活充满了独一无二、非比寻常的经历。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_61' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_61'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_62' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_62'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_63' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_63'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_64' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_64'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_65' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_65'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_66' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_66'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_6' id='Prl_67' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_67'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">7. 我的生活有很多刻骨铭心的时刻。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_71' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_71'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_72' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_72'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_73' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_73'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_74' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_74'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_75' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_75'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_76' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_76'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_7' id='Prl_77' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_77'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">8. 我从旅游和音乐会等亲身经历中获得全方位的情感体验。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_81' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_81'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_82' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_82'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_83' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_83'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_84' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_84'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_85' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_85'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_86' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_86'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_8' id='Prl_87' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_87'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">9. 我有很多自己的人生故事可以给别人讲。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_91' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_91'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_92' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_92'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_93' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_93'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_94' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_94'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_95' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_95'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_96' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_96'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_9' id='Prl_97' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_97'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">10. 在我临终前，我应该会说“我度过了有趣的一生”。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_101' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_101'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_102' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_102'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_103' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_103'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_104' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_104'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_105' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_105'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_106' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_106'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_10' id='Prl_107' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_107'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">11. 在我临终前，我应该会说“我看过了很多也学会了很多”。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_111' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_111'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_112' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_112'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_113' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_113'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_114' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_114'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_115' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_115'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_116' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_116'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_11' id='Prl_117' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_117'>非常同意</label>
+                </div>
+            </div>
+            <div class='row mb-4'>
+                <label class="form-label">12. 我的人生如果改编成小说或电影会很精彩。</label>
+                <div class='btn-group'>
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_121' value='1' required>
+                    <label class='btn btn-outline-primary' for='Prl_121'>非常不同意</label>
+                    
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_122' value='2'>
+                    <label class='btn btn-outline-primary' for='Prl_122'>不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_123' value='3'>
+                    <label class='btn btn-outline-primary' for='Prl_123'>比较不同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_124' value='4'>
+                    <label class='btn btn-outline-primary' for='Prl_124'>不确定</label>
+
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_125' value='5'>
+                    <label class='btn btn-outline-primary' for='Prl_125'>比较同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_126' value='6'>
+                    <label class='btn btn-outline-primary' for='Prl_126'>同意</label>
+
+                    <input type='radio' class='btn-check' name='Prl_12' id='Prl_127' value='7'>
+                    <label class='btn btn-outline-primary' for='Prl_127'>非常同意</label>
+                </div>
+            </div>`,
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+        data:{task:'Prl'}
+    }
+
+    var decision_instruction = `<div class='instruction' style='color:white'>你会选择以下哪种方式？</div>`
+    var work_time_instruction = function () {
+        var html = `<div class='instruction' style='color:white'>
+                        公司拟定这份工作的薪酬按 <span class='period'>${jsPsych.timelineVariable('period')}</span> 结算，
+                        你可以选择在工作开始前提前领到工资，<br/>
+                        也可以选择在工作结束后再获得，但是获得的工资会有差异，你会如何选择？
+                    </div>`;
+        return html
+    }
+    var work_odd_instruction = function () {
+        var html = `<div class='instruction' style='color:white'>
+                        公司拟定以下两种方式供你选择，你会如何选择？
+                    </div>`;
+        return html
+    }
+
+    var stimulus = `<div class='instruction' style='color:white'>
+                        请想象一下，你现在是一名毕业生，正在选择为两家同样优质的公司（X公司和Y公司）工作。 
+                        你在两家公司的职责非常相似，并且晋升和加薪机会也是相同的。 
+                        但是X公司只提供基本工资，而Y公司除了基本工资外，还将提供奖金，
+                        但大部分员工是没有奖金的，这部分主要取决于您的个人绩效。
+                        如果你的个人绩效在相同职位的同期员工中排名靠前，则可以获得额外的绩效奖金，
+                        如果排名靠后，则只能获得基本工资。<br/>你会选择哪一家公司呢？
+                    </div>`
+
+    var copy_trails = {
+        timeline: [
+            {
+                type: jsPsychHtmlButtonResponse,
+                stimulus: stimulus,
+                choices: [
+                    `<div style='font-weight:bold;margin-bottom:10px;font-size:1.7rem;'>X公司</div>
+                    <div class='copy'>每年 <span class='items'>45000</span> 元的年薪</div>`,
+                    `<div style='font-weight:bold;margin-bottom:10px;font-size:1.7rem;'>Y公司</div>
+                    <div class='copy'>除每年 <span class='items'>41000</span> 元的年薪外，
+                    如果综合绩效排名在前 <span class='condition'>10%</span>，还将获得 <span class='items'>10750</span> 元</div>`
+                ],
+                button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                data: {task:'copy_1'}
+            },
+            {
+                type: jsPsychHtmlButtonResponse,
+                stimulus: stimulus,
+                choices: [
+                    `<div style='font-weight:bold;margin-bottom:10px;font-size:1.7rem;'>X公司</div>
+                    <div class='copy'>每年 <span class='items'>45000</span> 元的年薪</div>`,
+                    `<div style='font-weight:bold;margin-bottom:10px;font-size:1.7rem;'>Y公司</div>
+                    <div class='copy'>除每年 <span class='items'>41000</span> 元的年薪外，
+                    如果综合绩效排名在前 <span class='condition'>35%</span>，还将获得 <span class='items'>10750</span> 元</div>`
+                ],
+                button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                data: {task:'copy_2'}
+            },
+        ],
+        post_trial_gap: 400
+    }
+
+    var end = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus:(`<h1 style='line-height:2.7rem'>实验结束，感谢您的参与！<br/>祝您有个美好的一天🌞！</h1>`),
+        trial_duration: 3000,
+        choices: "NO_KEYS",
+    }
+
+    timeline = [
+        // 基础设置
+        brower,
+        enter_fullscreen,
+        set_style,
+        preload,
+        cover,
+        info,
+
+        // 启动部分
+        pre_emotion,
+        initial_instruction,
+        if_pos,
+        if_neg,
+        if_netrual,
+        imgs_scale,
+
+        // 跨期决策
+        part_two_instruction,
+        origin_time_cover,
+        main_trail([
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一天后',values:[228,114], task:'origin_day_low'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一天后',values:[456,228],task:'origin_day_high'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一周后',values:[1250,625], task:'origin_week_low'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一周后',values:[2500,1250],task:'origin_week_high'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一月后',values:[5000,2500], task:'origin_month_low'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一月后',values:[10000,5000],task:'origin_month_high'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'半年后',values:[30000,15000], task:'origin_half_year_low'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'半年后',values:[60000,30000],task:'origin_half_year_high'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一年后',values:[60000,30000], task:'origin_year_low'},
+            {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一年后',values:[120000,60000],task:'origin_year_high'},
+        ]),
+
+        work_time_cover,
+        main_trail([
+            {instruction:work_time_instruction,sooner_condition:'每天清晨',later_condition:'每天傍晚',values:[228,114], task:'work_day_low',period:'日薪'},
+            {instruction:work_time_instruction,sooner_condition:'每天清晨',later_condition:'每天傍晚',values:[456,228],task:'work_day_high',period:'日薪'},
+            {instruction:work_time_instruction,sooner_condition:'每周周一',later_condition:'每周周末',values:[1250,625], task:'work_week_low',period:'周薪'},
+            {instruction:work_time_instruction,sooner_condition:'每周周一',later_condition:'每周周末',values:[2500,1250],task:'work_week_high',period:'周薪'},
+            {instruction:work_time_instruction,sooner_condition:'每月月初',later_condition:'每月月末',values:[5000,2500], task:'work_month_low',period:'月薪'},
+            {instruction:work_time_instruction,sooner_condition:'每月月初',later_condition:'每月月末',values:[10000,5000],task:'work_month_high',period:'月薪'},
+            {instruction:work_time_instruction,sooner_condition:'每半年初',later_condition:'每半年末',values:[30000,15000], task:'work_half_year_low',period:'半年薪'},
+            {instruction:work_time_instruction,sooner_condition:'每半年初',later_condition:'每半年末',values:[60000,30000],task:'work_half_year_high',period:'半年薪'},
+            {instruction:work_time_instruction,sooner_condition:'每年年初',later_condition:'每年年末',values:[60000,30000], task:'work_year_low',period:'年薪'},
+            {instruction:work_time_instruction,sooner_condition:'每年年初',later_condition:'每年年末',values:[120000,60000],task:'work_year_high',period:'年薪'},
+        ]),
+
+        // 风险决策
+        part_three_instruction,
+        origin_odd_cover,
+        main_trail([
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'95% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_95_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'95% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_95_high'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'80% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_80_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'80% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_80_high'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'50% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_50_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'50% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_50_high'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'25% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_25_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'25% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_25_high'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'10% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_10_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'10% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_10_high'},   
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'5% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_5_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'5% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_5_high'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'1% <span style="color:black; font-weight:normal">的可能</span>',values:[5000,2500], task:'origin_1_low'},
+            {instruction:decision_instruction,sooner_condition:'100%',later_condition:'1% <span style="color:black; font-weight:normal">的可能</span>',values:[10000,5000],task:'origin_1_high'},
+        ]),
+        
+        work_odd_cover,
+        main_trail([
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 95%',values:[5000,2500], task:'work_95_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 95%',values:[10000,5000],task:'work_95_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 80%',values:[5000,2500], task:'work_80_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 80%',values:[10000,5000],task:'work_80_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 50%',values:[5000,2500], task:'work_50_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 50%',values:[10000,5000],task:'work_50_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 25%',values:[5000,2500], task:'work_25_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 25%',values:[10000,5000],task:'work_25_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 10%',values:[5000,2500], task:'work_10_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 10%',values:[10000,5000],task:'work_10_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 5%',values:[5000,2500], task:'work_5_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 5%',values:[10000,5000],task:'work_5_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 1%',values:[5000,2500], task:'work_1_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月考核成绩在前</span> 1%',values:[10000,5000],task:'work_1_high'},
+        ]),
+
+        work2_odd_cover,
+        main_trail([
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 95% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500],task:'work2_95_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 95% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_95_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 80% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500],task:'work2_80_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 80% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_80_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 50% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500], task:'work2_50_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 50% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_50_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 25% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500], task:'work2_25_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 25% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_25_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 10% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500], task:'work2_10_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 10% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_10_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 5% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500], task:'work2_5_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 5% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_5_high'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">2000</span> 元的基本工资<br/>外，考核成绩在前</span> 1% <span style="color:black; font-weight:normal">还将额外</span>',values:[5000,2500], task:'work2_1_low'},
+            {instruction:work_odd_instruction,sooner_condition:'<span style="color:black; font-weight:normal">每月</span> 100%',later_condition:'<span style="color:black; font-weight:normal">每月除 <span class="items">4000</span> 元的基本工资<br/>外，考核成绩在前</span> 1% <span style="color:black; font-weight:normal">还将额外</span>',values:[10000,5000],task:'work2_1_high'},
+        ]),
+
+        copy_trails,
+
+        // 量表部分
+        scale_instr,
+        Cses_scale,
+        Unpre_scale,
+        ladder_scale,
+        Pses_scale,
+        Prl_scale,
+        Work_scale,
+        Impul_scale,
+        conf,
+        end,
+        exit_fullscreen
+        ]
+
+    jsPsych.run(timeline);
+    </script>
+</html>

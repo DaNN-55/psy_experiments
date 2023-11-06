@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>跨期决策实验</title>
+    <script src="js/jspsych.js"></script>
+    <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+    <link href="css/style.css" rel="stylesheet" type="text/css" />
+
+    <script src="js/plugin-survey-likert.js"></script>
+    <script src='js/plugin-html-slider-response.js'></script>
+    <script src='js/plugin-html-button-response.js'></script>
+    <script src='js/plugin-instructions.js'></script>
+    <script src='js/plugin-survey-html-form.js'></script>
+    <script src='js/plugin-fullscreen.js'></script>
+    <script src='js/plugin-html-keyboard-response.js'></script>
+    <script src='js/plugin-survey-text.js'></script>
+    <script src='js/plugin-fullscreen.js'></script>
+</head>
+
+<body></body>
+
+<script>
+    const timeline = [];
+
+    const nowdate = new Date(),
+        month = nowdate.getMonth(),
+        date = nowdate.getDate(),
+        hour = nowdate.getHours(),
+        minutes = nowdate.getMinutes()
+
+    const file_name = month + 1 + '_' + date + '_' + hour + '_' + minutes
+
+    const jsPsych = initJsPsych({
+        on_finish: function () {
+            jsPsych.data.get().localSave('json', `${file_name}.json`);
+            document.getElementById('jspsych-content').innerHTML +=
+                '<h1>实验结束，感谢您的参与！</h1><h2>祝您有个美好的一天！🌞</h2>'
+        }
+    });
+
+    // 全屏显示
+    var enter_fullscreen = {
+        type: jsPsychFullscreen,
+        message: '<p>本次实验需要进入全屏模式，请点击下方的允许按钮</p>',
+        button_label: '允许',
+        fullscreen_mode: true
+    };
+    timeline.push(enter_fullscreen)
+
+    // 封面
+    var cover = {
+        type: jsPsychInstructions,
+        pages: [
+            "<p style='font:bold 41px 微软雅黑; color:#B22222'>欢迎参与跨期决策实验</p>\
+            <p style='font:20px 微软雅黑; color:gray'><br/><br/>\
+            <b>该实验没有时间限制，请在认真思考后做答</b><br/><br/>\
+            <b>在实验过程中请勿退出</b><br/><br/>\
+            <b>点击下面的开始按钮即可开始实验</b></p>\
+            <br/><br/>",
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };
+    timeline.push(cover)
+
+    // 被试信息
+    var info = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "<h1> 请先填写以下基本信息：</h1><br/>",
+        html: "<div id='groupform'>\
+                        <label for='order'>被试序号：</label>\
+                        <input type='number' id='order' name='order' required/>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='age'>被试年龄：  </label>\
+                        <input type='number' id='age' name='age' required/>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='grade'>所在年级：  </label>\
+                        <select id='grade' name='grade' required/>\
+                            <option value=''></option>\
+                            <option value='1'>大一</option>\
+                            <option value='2'>大二</option>\
+                            <option value='3'>大三</option>\
+                            <option value='4'>大四</option>\
+                            <option value='5'>研一</option>\
+                            <option value='6'>研二</option>\
+                            <option value='7'>研三</option>\
+                        </select>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='income'>家庭年收入：</label>\
+                        <select id='income' name='income' required/>\
+                            <option value=''></option>\
+                            <option value='1'>小于3万元</option>\
+                            <option value='2'>3~8万元</option>\
+                            <option value='3'>9~14万元</option>\
+                            <option value='4'>15~20万元</option>\
+                            <option value='5'>20万元以上</option>\
+                        </select>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='father_edu'>父亲学历：</label>\
+                        <select id='father_edu' name='father_edu' required/>\
+                            <option value=''></option>\
+                            <option value='1'>小学及以下</option>\
+                            <option value='2'>初中</option>\
+                            <option value='3'>高中/中专/技校</option>\
+                            <option value='4'>大专</option>\
+                            <option value='5'>大学本科</option>\
+                            <option value='6'>研究生及以上</option>\
+                        </select>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='monther_edu'>母亲学历：</label>\
+                        <select id='monther_edu' name='monther_edu' required/>\
+                            <option value=''></option>\
+                            <option value='1'>小学及以下</option>\
+                            <option value='2'>初中</option>\
+                            <option value='3'>高中/中专/技校</option>\
+                            <option value='4'>大专</option>\
+                            <option value='5'>大学本科</option>\
+                            <option value='6'>研究生及以上</option>\
+                        </select>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='divorce'>父母是否离异：</label>\
+                        <input type='radio' id='divorce1' name='divorce' value='1'required/>\
+                        <label for='divorce1'>是</label>\
+                        <input type='radio' id='divorce0' name='divorce' value='0'required/>\
+                        <label for='divorce0'>否</label>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='single'>独生子女：</label>\
+                        <input type='radio' id='single1' name='single' value='1' required/>\
+                        <label for='single1'>是</label>\
+                        <input type='radio' id='single0' name='single' value='0' required/>\
+                        <label for='single0'>否</label>\
+                    </div>\
+                    <div id='groupform'>\
+                        <label for='divorce'>性别：</label>\
+                        <input type='radio' id='gender1' name='gender' value='1' required/>\
+                        <label for='gender1'>男</label>\
+                        <input type='radio' id='gender0' name='gender' value='0' required/>\
+                        <label for='gender0'>女</label>\
+                    </div>",
+        button_label: '下一页',
+        dataAsArray: true,
+        autofocus: 'test-resp-box',
+    };
+    timeline.push(info);
+
+    //slider实验
+    var slider_instr = {
+        type: jsPsychInstructions,
+        pages: [
+            "<h1>第一部分</h1><br/>\
+                <h2 style='line-height:120%'>该部分要求你指出从现在到未来几天之间持续时间的主观感觉<br/>\
+                    未来几天从 1 天到 365 天不等<br/>\
+                    请仔细阅读说明并标出你的回答<br/></h2>\
+                <h3 style='color:gray'><如果准备好了请点击开始></h3>",
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };
+    timeline.push(slider_instr)
+
+    var silder_trails = {
+        timeline: [{
+            type: jsPsychHtmlSliderResponse,
+            stimulus: function () {
+                var html =
+                    `<h2>从现在开始经过<u> ${jsPsych.timelineVariable('day')} </u>天，你认为这段时间有多长，请用下面的滑块表示出来</h2><br/>`
+                return html;
+            },
+            require_movement: true,
+            labels: ['<p id="slider-label">非常短</p>', '<p id="slider-label">非常长</p>'],
+            slider_start: 0,
+            button_label: '确定',
+            slider_width: 750,
+            step: 0.01,
+        }, ],
+        timeline_variables: [{
+                day: '1'
+            },
+            {
+                day: '7'
+            },
+            {
+                day: '13'
+            },
+            {
+                day: '14'
+            },
+            {
+                day: '19'
+            },
+            {
+                day: '20'
+            },
+            {
+                day: '21'
+            },
+            {
+                day: '29'
+            },
+            {
+                day: '30'
+            },
+            {
+                day: '53'
+            },
+            {
+                day: '61'
+            },
+            {
+                day: '62'
+            },
+            {
+                day: '80'
+            },
+            {
+                day: '89'
+            },
+            {
+                day: '91'
+            },
+            {
+                day: '111'
+            },
+            {
+                day: '117'
+            },
+            {
+                day: '119'
+            },
+            {
+                day: '136'
+            },
+            {
+                day: '157'
+            },
+            {
+                day: '160'
+            },
+            {
+                day: '162'
+            },
+            {
+                day: '179'
+            },
+            {
+                day: '186'
+            },
+            {
+                day: '365'
+            }
+        ],
+        randomize_order: true
+    }
+    timeline.push(silder_trails)
+
+    //时间折现范式
+    var TD_instr = {
+        type: jsPsychInstructions,
+        pages: [
+            "<h1>第二部分</h1><br/>\
+                <h2 style='line-height:120%'>接下来会出现两笔钱，一笔数额较小，你现在就可以得到；<br/>\
+                    另一笔数额较大，你需要等待一段时间后才能得到，你会如何选择？<br/></h2>\
+                <h3 style='color:gray'><如果准备好了请点击开始></h3>",
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };
+    timeline.push(TD_instr)
+
+    // 实验一
+    var normal_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: '<h2>请做出你的选择</h2><br/>',
+            choices: [function () {
+                    var html = `现在得到<u> ${jsPsych.timelineVariable('SDR')} </u> 元 `
+                    return html;
+                },
+                function () {
+                    var html =
+                        `&nbsp<u> ${jsPsych.timelineVariable('day')} </u>天后得到<u> ${jsPsych.timelineVariable('LDR')} </u> 元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 800);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '54',
+                LDR: '55',
+                day: '117',
+                order: "normal_1"
+            },
+            {
+                SDR: '55',
+                LDR: '75',
+                day: '61',
+                order: "normal_2"
+            },
+            {
+                SDR: '19',
+                LDR: '25',
+                day: '53',
+                order: "normal_3"
+            },
+            {
+                SDR: '31',
+                LDR: '85',
+                day: '7',
+                order: "normal_4"
+            },
+            {
+                SDR: '14',
+                LDR: '25',
+                day: '19',
+                order: "normal_5"
+            },
+            {
+                SDR: '47',
+                LDR: '50',
+                day: '160',
+                order: "normal_6"
+            },
+            {
+                SDR: '15',
+                LDR: '35',
+                day: '13',
+                order: "normal_7"
+            },
+            {
+                SDR: '25',
+                LDR: '60',
+                day: '14',
+                order: "normal_8"
+            },
+            {
+                SDR: '78',
+                LDR: '80',
+                day: '162',
+                order: "normal_9"
+            },
+            {
+                SDR: '40',
+                LDR: '55',
+                day: '62',
+                order: "normal_10"
+            },
+            {
+                SDR: '11',
+                LDR: '30',
+                day: '7',
+                order: "normal_11"
+            },
+            {
+                SDR: '67',
+                LDR: '75',
+                day: '119',
+                order: "normal_12"
+            },
+            {
+                SDR: '34',
+                LDR: '35',
+                day: '186',
+                order: "normal_13"
+            },
+            {
+                SDR: '27',
+                LDR: '50',
+                day: '21',
+                order: "normal_14"
+            },
+            {
+                SDR: '69',
+                LDR: '85',
+                day: '91',
+                order: "normal_15"
+            },
+            {
+                SDR: '49',
+                LDR: '60',
+                day: '89',
+                order: "normal_16"
+            },
+            {
+                SDR: '80',
+                LDR: '85',
+                day: '157',
+                order: "normal_17"
+            },
+            {
+                SDR: '24',
+                LDR: '35',
+                day: '29',
+                order: "normal_18"
+            },
+            {
+                SDR: '33',
+                LDR: '80',
+                day: '14',
+                order: "normal_19"
+            },
+            {
+                SDR: '28',
+                LDR: '30',
+                day: '179',
+                order: "normal_20"
+            },
+            {
+                SDR: '34',
+                LDR: '50',
+                day: '30',
+                order: "normal_21"
+            },
+            {
+                SDR: '25',
+                LDR: '30',
+                day: '80',
+                order: "normal_22"
+            },
+            {
+                SDR: '41',
+                LDR: '75',
+                day: '20',
+                order: "normal_23"
+            },
+            {
+                SDR: '54',
+                LDR: '60',
+                day: '111',
+                order: "normal_24"
+            },
+            {
+                SDR: '54',
+                LDR: '80',
+                day: '30',
+                order: "normal_25"
+            },
+            {
+                SDR: '22',
+                LDR: '25',
+                day: '136',
+                order: "normal_26"
+            },
+            {
+                SDR: '20',
+                LDR: '55',
+                day: '7',
+                order: "normal_27"
+            },
+        ],
+    };
+    timeline.push(normal_trails)
+
+    var break_time = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<h1>请休息一下！</h1>',
+        choices: "NO_KEYS",
+        trial_duration: 3000,
+    };
+    timeline.push(break_time)
+
+    //实验二
+    var day_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: function () {
+                var html = `<h2>请想象一下你有一份工作，这份工作的工资按<span style='color:red'> ${jsPsych.timelineVariable('day')} </span> 结算。\
+                            <br/>你可以选择在工作开始前获得，也可以选择在工作结束后获得，你会如何选择？</h2><br/>`
+                return html;
+            },
+            choices: [function () {
+                    var html =
+                        `工作开始前的<b> ${jsPsych.timelineVariable('start')} </b><br/>获得<u> ${jsPsych.timelineVariable('SDR')} </u> 元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `工作结束后的<b> ${jsPsych.timelineVariable('last')} </b><br/>得到<u> ${jsPsych.timelineVariable('LDR')} </u> 元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 800);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '216',
+                LDR: '217',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_1'
+            },
+            {
+                SDR: '265',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_2'
+            },
+            {
+                SDR: '99',
+                LDR: '100',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_3'
+            },
+            {
+                SDR: '266',
+                LDR: '333',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_4'
+            },
+            {
+                SDR: '96',
+                LDR: '100',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_5'
+            },
+            {
+                SDR: '266',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_6'
+            },
+            {
+                SDR: '121',
+                LDR: '133',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_7'
+            },
+            {
+                SDR: '197',
+                LDR: '217',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_8'
+            },
+            {
+                SDR: '299',
+                LDR: '300',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_9'
+            },
+            {
+                SDR: '166',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_10'
+            },
+            {
+                SDR: '134',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_11'
+            },
+            {
+                SDR: '266',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_12'
+            },
+            {
+                SDR: '132',
+                LDR: '133',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_13'
+            },
+            {
+                SDR: '160',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_14'
+            },
+            {
+                SDR: '332',
+                LDR: '333',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_15'
+            },
+            {
+                SDR: '266',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_16'
+            },
+            {
+                SDR: '332',
+                LDR: '333',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_17'
+            },
+            {
+                SDR: '131',
+                LDR: '133',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_18'
+            },
+            {
+                SDR: '273',
+                LDR: '300',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_19'
+            },
+            {
+                SDR: '166',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_20'
+            },
+            {
+                SDR: '214',
+                LDR: '217',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_21'
+            },
+            {
+                SDR: '166',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_22'
+            },
+            {
+                SDR: '256',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_23'
+            },
+            {
+                SDR: '166',
+                LDR: '167',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_24'
+            },
+            {
+                SDR: '295',
+                LDR: '300',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_25'
+            },
+            {
+                SDR: '99',
+                LDR: '100',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_26'
+            },
+            {
+                SDR: '214',
+                LDR: '267',
+                day: '天',
+                start: '清晨',
+                last: '傍晚',
+                order: 'day_27'
+            },
+        ],
+    };
+
+    var month_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: function () {
+                var html = `<h2>请想象一下你有一份工作，这份工作的工资按<span style='color:red'> ${jsPsych.timelineVariable('day')} </span> 结算。\
+                        <br/>你可以选择在工作开始前获得，也可以选择在工作结束后获得，你会如何选择？</h2><br/>`
+                return html;
+            },
+            choices: [function () {
+                    var html =
+                        `工作开始前的<b> ${jsPsych.timelineVariable('start')} </b> <br/>获得<u> ${jsPsych.timelineVariable('SDR')} </u> 元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `工作结束后的<b> ${jsPsych.timelineVariable('last')} </b> <br/>得到<u> ${jsPsych.timelineVariable('LDR')} </u> 元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 800);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '6469',
+                LDR: '6500',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_1'
+            },
+            {
+                SDR: '6780',
+                LDR: '8000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_2'
+            },
+            {
+                SDR: '2542',
+                LDR: '3000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_3'
+            },
+            {
+                SDR: '1176',
+                LDR: '9999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_4'
+            },
+            {
+                SDR: '1345',
+                LDR: '3000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_5'
+            },
+            {
+                SDR: '7904',
+                LDR: '7999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_6'
+            },
+            {
+                SDR: '1000',
+                LDR: '4000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_7'
+            },
+            {
+                SDR: '1625',
+                LDR: '6500',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_8'
+            },
+            {
+                SDR: '8957',
+                LDR: '9000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_9'
+            },
+            {
+                SDR: '4237',
+                LDR: '5000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_10'
+            },
+            {
+                SDR: '588',
+                LDR: '4999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_11'
+            },
+            {
+                SDR: '7767',
+                LDR: '8000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_12'
+            },
+            {
+                SDR: '3981',
+                LDR: '4000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_13'
+            },
+            {
+                SDR: '2242',
+                LDR: '5000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_14'
+            },
+            {
+                SDR: '9301',
+                LDR: '9999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_15'
+            },
+            {
+                SDR: '7441',
+                LDR: '7999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_16'
+            },
+            {
+                SDR: '9880',
+                LDR: '9999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_17'
+            },
+            {
+                SDR: '2703',
+                LDR: '4000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_18'
+            },
+            {
+                SDR: '2250',
+                LDR: '9000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_19'
+            },
+            {
+                SDR: '4940',
+                LDR: '4999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_20'
+            },
+            {
+                SDR: '4392',
+                LDR: '6500',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_21'
+            },
+            {
+                SDR: '4650',
+                LDR: '4999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_22'
+            },
+            {
+                SDR: '3587',
+                LDR: '8000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_23'
+            },
+            {
+                SDR: '4854',
+                LDR: '5000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_24'
+            },
+            {
+                SDR: '6081',
+                LDR: '9000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_25'
+            },
+            {
+                SDR: '2913',
+                LDR: '3000',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_26'
+            },
+            {
+                SDR: '941',
+                LDR: '7999',
+                day: '月',
+                start: '月初',
+                last: '月末',
+                order: 'month_27'
+            },
+        ],
+    };
+
+    var year_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: function () {
+                var html = `<h2>请想象一下你有一份工作，这份工作的工资按<span style='color:red'> ${jsPsych.timelineVariable('day')} </span>结算。\
+                        <br/>你可以选择在工作开始前获得，也可以选择在工作结束后获得，你会如何选择？</h2><br/>`
+                return html;
+            },
+            choices: [function () {
+                    var html =
+                        `工作开始前的<b> ${jsPsych.timelineVariable('start')} </b> <br/>获得<u> ${jsPsych.timelineVariable('SDR')} </u> 元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `工作结束后的<b> ${jsPsych.timelineVariable('last')} </b> <br/>得到<u> ${jsPsych.timelineVariable('LDR')} </u> 元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 800);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '73696',
+                LDR: '78000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_1'
+            },
+            {
+                SDR: '30094',
+                LDR: '96000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_2'
+            },
+            {
+                SDR: '11285',
+                LDR: '36000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_3'
+            },
+            {
+                SDR: '1301',
+                LDR: '119998',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_4'
+            },
+            {
+                SDR: '2255',
+                LDR: '36000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_5'
+            },
+            {
+                SDR: '83759',
+                LDR: '95988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_6'
+            },
+            {
+                SDR: '1280',
+                LDR: '48000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_7'
+            },
+            {
+                SDR: '2080',
+                LDR: '78000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_8'
+            },
+            {
+                SDR: '102041',
+                LDR: '108000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_9'
+            },
+            {
+                SDR: '18809',
+                LDR: '60000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_10'
+            },
+            {
+                SDR: '650',
+                LDR: '59988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_11'
+            },
+            {
+                SDR: '70330',
+                LDR: '96000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_12'
+            },
+            {
+                SDR: '45351',
+                LDR: '48000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_13'
+            },
+            {
+                SDR: '3758',
+                LDR: '60000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_14'
+            },
+            {
+                SDR: '62739',
+                LDR: '119988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_15'
+            },
+            {
+                SDR: '50190',
+                LDR: '95988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_16'
+            },
+            {
+                SDR: '104702',
+                LDR: '119988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_17'
+            },
+            {
+                SDR: '7018',
+                LDR: '48000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_18'
+            },
+            {
+                SDR: '2880',
+                LDR: '108000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_19'
+            },
+            {
+                SDR: '52346',
+                LDR: '59988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_20'
+            },
+            {
+                SDR: '11404',
+                LDR: '78000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_21'
+            },
+            {
+                SDR: '31366',
+                LDR: '59988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_22'
+            },
+            {
+                SDR: '6013',
+                LDR: '96000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_23'
+            },
+            {
+                SDR: '43956',
+                LDR: '60000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_24'
+            },
+            {
+                SDR: '15789',
+                LDR: '108000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_25'
+            },
+            {
+                SDR: '26374',
+                LDR: '36000',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_26'
+            },
+            {
+                SDR: '1041',
+                LDR: '95988',
+                day: '年',
+                start: '年初',
+                last: '年末',
+                order: 'year_27'
+            },
+        ],
+    };
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    };
+
+    let trails2 = shuffle([day_trails, month_trails, year_trails])
+    trails2.splice(1, 0, break_time)
+    trails2.splice(3, 0, break_time)
+    trails2.push(break_time)
+
+    var exp2_node = {
+        timeline: trails2,
+    }
+    timeline.push(exp2_node)
+
+    // 实验三
+    var day_month_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: "<h2>请想象一下你有一份工作，这份工作的工资有两种结算方式，你会如何选择？</h2><br/>",
+            choices: [function () {
+                    var html =
+                        `以 <b>日薪</b> 的方式结算 <br/>每天可以得到<u> ${jsPsych.timelineVariable('SDR')} </u>元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `以 <b>月薪</b> 的方式结算 <br/>每月可以得到<u> ${jsPsych.timelineVariable('LDR')} </u> 元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 500);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '216',
+                LDR: '6500',
+                order: 'DM_1'
+            },
+            {
+                SDR: '226',
+                LDR: '8000',
+                order: 'DM_2'
+            },
+            {
+                SDR: '85',
+                LDR: '3000',
+                order: 'DM_3'
+            },
+            {
+                SDR: '39',
+                LDR: '9999',
+                order: 'DM_4'
+            },
+            {
+                SDR: '45',
+                LDR: '3000',
+                order: 'DM_5'
+            },
+            {
+                SDR: '263',
+                LDR: '7999',
+                order: 'DM_6'
+            },
+            {
+                SDR: '33',
+                LDR: '4000',
+                order: 'DM_7'
+            },
+            {
+                SDR: '54',
+                LDR: '6500',
+                order: 'DM_8'
+            },
+            {
+                SDR: '299',
+                LDR: '9000',
+                order: 'DM_9'
+            },
+            {
+                SDR: '141',
+                LDR: '5000',
+                order: 'DM_10'
+            },
+            {
+                SDR: '20',
+                LDR: '4999',
+                order: 'DM_11'
+            },
+            {
+                SDR: '259',
+                LDR: '8000',
+                order: 'DM_12'
+            },
+            {
+                SDR: '133',
+                LDR: '4000',
+                order: 'DM_13'
+            },
+            {
+                SDR: '75',
+                LDR: '5000',
+                order: 'DM_14'
+            },
+            {
+                SDR: '310',
+                LDR: '9999',
+                order: 'DM_15'
+            },
+            {
+                SDR: '248',
+                LDR: '7999',
+                order: 'DM_16'
+            },
+            {
+                SDR: '329',
+                LDR: '9999',
+                order: 'DM_17'
+            },
+            {
+                SDR: '90',
+                LDR: '4000',
+                order: 'DM_18'
+            },
+            {
+                SDR: '75',
+                LDR: '9000',
+                order: 'DM_19'
+            },
+            {
+                SDR: '165',
+                LDR: '4999',
+                order: 'DM_20'
+            },
+            {
+                SDR: '146',
+                LDR: '6500',
+                order: 'DM_21'
+            },
+            {
+                SDR: '155',
+                LDR: '4999',
+                order: 'DM_22'
+            },
+            {
+                SDR: '120',
+                LDR: '8000',
+                order: 'DM_23'
+            },
+            {
+                SDR: '162',
+                LDR: '5000',
+                order: 'DM_24'
+            },
+            {
+                SDR: '203',
+                LDR: '9000',
+                order: 'DM_25'
+            },
+            {
+                SDR: '97',
+                LDR: '3000',
+                order: 'DM_26'
+            },
+            {
+                SDR: '31',
+                LDR: '7999',
+                order: 'DM_27'
+            },
+        ],
+    };
+
+    var day_year_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: "<h2>请想象一下你有一份工作，这份工作的工资有两种结算方式，你会如何选择？</h2><br/>",
+            choices: [function () {
+                    var html =
+                        `以 <b>日薪</b> 的方式结算<br/>每日可以得到<u> ${jsPsych.timelineVariable('SDR')} </u>元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `以 <b>年薪</b> 的方式结算<br/>每年可以得到<u> ${jsPsych.timelineVariable('LDR')} </u>元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 500);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '202',
+                LDR: '78000',
+                order: 'DY_1'
+            },
+            {
+                SDR: '82',
+                LDR: '96000',
+                order: 'DY_2'
+            },
+            {
+                SDR: '31',
+                LDR: '36000',
+                order: 'DY_3'
+            },
+            {
+                SDR: '4',
+                LDR: '119988',
+                order: 'DY_4'
+            },
+            {
+                SDR: '6',
+                LDR: '36000',
+                order: 'DY_5'
+            },
+            {
+                SDR: '229',
+                LDR: '95988',
+                order: 'DY_6'
+            },
+            {
+                SDR: '4',
+                LDR: '48000',
+                order: 'DY_7'
+            },
+            {
+                SDR: '6',
+                LDR: '78000',
+                order: 'DY_8'
+            },
+            {
+                SDR: '280',
+                LDR: '108000',
+                order: 'DY_9'
+            },
+            {
+                SDR: '52',
+                LDR: '60000',
+                order: 'DY_10'
+            },
+            {
+                SDR: '2',
+                LDR: '59988',
+                order: 'DY_11'
+            },
+            {
+                SDR: '193',
+                LDR: '96000',
+                order: 'DY_12'
+            },
+            {
+                SDR: '124',
+                LDR: '48000',
+                order: 'DY_13'
+            },
+            {
+                SDR: '10',
+                LDR: '60000',
+                order: 'DY_14'
+            },
+            {
+                SDR: '172',
+                LDR: '119988',
+                order: 'DY_15'
+            },
+            {
+                SDR: '138',
+                LDR: '95988',
+                order: 'DY_16'
+            },
+            {
+                SDR: '287',
+                LDR: '119988',
+                order: 'DY_17'
+            },
+            {
+                SDR: '19',
+                LDR: '48000',
+                order: 'DY_18'
+            },
+            {
+                SDR: '8',
+                LDR: '108000',
+                order: 'DY_19'
+            },
+            {
+                SDR: '143',
+                LDR: '59988',
+                order: 'DY_20'
+            },
+            {
+                SDR: '31',
+                LDR: '78000',
+                order: 'DY_21'
+            },
+            {
+                SDR: '86',
+                LDR: '59988',
+                order: 'DY_22'
+            },
+            {
+                SDR: '16',
+                LDR: '96000',
+                order: 'DY_23'
+            },
+            {
+                SDR: '120',
+                LDR: '60000',
+                order: 'DY_24'
+            },
+            {
+                SDR: '43',
+                LDR: '108000',
+                order: 'DY_25'
+            },
+            {
+                SDR: '72',
+                LDR: '36000',
+                order: 'DY_26'
+            },
+            {
+                SDR: '3',
+                LDR: '95988',
+                order: 'DY_27'
+            },
+        ],
+    };
+
+    var month_year_trails = {
+        timeline: [{
+            type: jsPsychHtmlButtonResponse,
+            stimulus: "<h2>请想象一下你有一份工作，这份工作的工资有两种结算方式，你会如何选择？</h2><br/>",
+            choices: [function () {
+                    var html =
+                        `以 <b>月薪</b> 的方式结算<br/>每月可以得到<u> ${jsPsych.timelineVariable('SDR')} </u>元`
+                    return html;
+                },
+                function () {
+                    var html =
+                        `以 <b>年薪</b> 的方式结算<br/>每年可以得到<u> ${jsPsych.timelineVariable('LDR')} </u>元`
+                    return html
+                },
+            ],
+            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            data: {
+                'order': jsPsych.timelineVariable('order')
+            },
+            on_load: function () {
+                setTimeout(function () {
+                    $('button[name="td-btn"]').removeAttr('disabled');
+                }, 500);
+            },
+        }, ],
+        timeline_variables: [{
+                SDR: '6174',
+                LDR: '78000',
+                order: 'MY_1'
+            },
+            {
+                SDR: '2685',
+                LDR: '96000',
+                order: 'MY_2'
+            },
+            {
+                SDR: '1007',
+                LDR: '36000',
+                order: 'MY_3'
+            },
+            {
+                SDR: '120',
+                LDR: '119988',
+                order: 'MY_4'
+            },
+            {
+                SDR: '206',
+                LDR: '36000',
+                order: 'MY_5'
+            },
+            {
+                SDR: '7066',
+                LDR: '95988',
+                order: 'MY_6'
+            },
+            {
+                SDR: '118',
+                LDR: '48000',
+                order: 'MY_7'
+            },
+            {
+                SDR: '191',
+                LDR: '78000',
+                order: 'MY_8'
+            },
+            {
+                SDR: '8549',
+                LDR: '108000',
+                order: 'MY_9'
+            },
+            {
+                SDR: '1678',
+                LDR: '60000',
+                order: 'MY_10'
+            },
+            {
+                SDR: '60',
+                LDR: '59988',
+                order: 'MY_11'
+            },
+            {
+                SDR: '6015',
+                LDR: '96000',
+                order: 'MY_12'
+            },
+            {
+                SDR: '3799',
+                LDR: '48000',
+                order: 'MY_13'
+            },
+            {
+                SDR: '344',
+                LDR: '60000',
+                order: 'MY_14'
+            },
+            {
+                SDR: '5479',
+                LDR: '119988',
+                order: 'MY_15'
+            },
+            {
+                SDR: '4383',
+                LDR: '95988',
+                order: 'MY_16'
+            },
+            {
+                SDR: '8833',
+                LDR: '119988',
+                order: 'MY_17'
+            },
+            {
+                SDR: '637',
+                LDR: '48000',
+                order: 'MY_18'
+            },
+            {
+                SDR: '265',
+                LDR: '108000',
+                order: 'MY_19'
+            },
+            {
+                SDR: '4416',
+                LDR: '59988',
+                order: 'MY_20'
+            },
+            {
+                SDR: '1035',
+                LDR: '78000',
+                order: 'MY_21'
+            },
+            {
+                SDR: '2739',
+                LDR: '59988',
+                order: 'MY_22'
+            },
+            {
+                SDR: '551',
+                LDR: '96000',
+                order: 'MY_23'
+            },
+            {
+                SDR: '3759',
+                LDR: '60000',
+                order: 'MY_24'
+            },
+            {
+                SDR: '1433',
+                LDR: '108000',
+                order: 'MY_25'
+            },
+            {
+                SDR: '2256',
+                LDR: '36000',
+                order: 'MY_26'
+            },
+            {
+                SDR: '96',
+                LDR: '95988',
+                order: 'MY_27'
+            },
+        ],
+    };
+
+    let trails3 = shuffle([day_month_trails, day_year_trails, month_year_trails])
+    trails3.splice(1, 0, break_time)
+    trails3.splice(3, 0, break_time)
+
+    var node2 = {
+        timeline: trails3,
+    }
+    timeline.push(node2)
+
+    // 量表指导语
+    var scale_instr = {
+        type: jsPsychInstructions,
+        pages: [
+            "<h1>第三部分</h1><br/>\
+            <h2 style='line-height:140%'>\
+            接下来你会看到几道选择题<br/>\
+            这部分是想了解您在一些情况下思考问题与行动的方式<br/>\
+            答案不存在对错，不要花太多时间思考每个问题，也不要漏项<br/>\
+            如果您不太清楚如何回答，请尽量估计</h2>\
+            <h3 style='color:gray'><如果准备好了请点击开始></h3>",
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: '开始',
+        allow_keys: false,
+    };
+    timeline.push(scale_instr)
+
+    // 李克特量表的选项
+    var likert_scale_7 = [
+        "非常不同意",
+        "不同意",
+        "比较不同意",
+        "不确定",
+        "比较同意",
+        "同意",
+        "非常同意"
+    ];
+
+    // 量表
+    var Cses_trial = {
+        type: jsPsychSurveyLikert,
+        preamble: "<span style='font-size:23px; line-height:120%; font-weight:600'>【作答时，请您回想一下你10岁之前的生活。<br/>\
+                这段时间包括学前班、幼儿园和小学的前几年是否符合这些陈述】</span>",
+        questions: [{
+                prompt: "<h2>1. 童年时家庭有足够多的钱来满足各种需求</h2>",
+                name: 'Cses_1',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: "<h2>2. 童年时, 父母在当地有较高的社会地位</h2>",
+                name: 'Cses_2',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>3. 相比于童年的伙伴, 我的生活更加富足</h2>',
+                name: 'Cses_3',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>4. 我成长在一个富足稳定的小区环境中</h2>',
+                name: 'Cses_4',
+                labels: likert_scale_7,
+                required: true
+            },
+        ],
+        button_label: '下一页',
+        scale_width: 750,
+    };
+    timeline.push(Cses_trial)
+
+    var Unpre_trial = {
+        type: jsPsychSurveyLikert,
+        preamble: "<br/><span style='font-size:23px; line-height:120%; font-weight:600'>\
+                【作答时，请您回想一下你10岁之前的生活。<br/>\
+                这段时间包括学前班、幼儿园和小学的前几年是否符合这些陈述】</span>",
+        questions: [{
+                prompt: '<h2>1. 我的家庭生活每天都不一致且无法预测</h2>',
+                name: 'Unpre_1',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>2. 在我童年时期，父母经常与对方或其他人发生打架或争吵</h2>',
+                name: 'Unpre_2',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>3. 在我童年时期，父母很难离婚或分居</h2>',
+                name: 'Unpre_3',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>4. 别人常常很随意地进出我家</h2>',
+                name: 'Unpre_4',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>5. 每天当我醒来，我常常不知道那天家里会发生什么</h2>',
+                name: 'Unpre_5',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>6. 我家的氛围经常很紧张，令人不安</h2>',
+                name: 'Unpre_6',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>7. 我家的情况经常是混乱的</h2>',
+                name: 'Unpre_7',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>8. 我很难知道我的父母或家里的其他人会说什么做什么</h2>',
+                name: 'Unpre_8',
+                labels: likert_scale_7,
+                required: true
+            },
+        ],
+        button_label: '下一页',
+        scale_width: 750,
+    };
+    timeline.push(Unpre_trial)
+
+    var Sses_trail = {
+        type: jsPsychSurveyLikert,
+        preamble: "<br/><span style='font-size:23px; line-height:120%; font-weight:600'>\
+            【把这个梯子想象成人们在社会中所处的位置;<br/>\
+                在梯子的顶端是生活最好的人，那些拥有最多的钱，最多的教育，和最好的工作;<br/>\
+                底层是那些最穷的人，那些拥有最少的钱，最少的教育，和没有工作的人】</span><br/>\
+                <img src='ladder.png' width=280>",
+        scale_width: 750,
+        questions: [{
+                prompt: "<span style='font-size:23px; font-weight:600'>请选出最能代表你 <span style='color:red'>童年</span> 所处位置的层级</span>",
+                labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+                required: true,
+                name: "Csses",
+            },
+            {
+                prompt: "<span style='font-size:23px; font-weight:600'>请选出最能代表你 <span style='color:red'>现在</span> 所处位置的层级</span>",
+                labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+                required: true,
+                name: "Psses",
+            }
+        ],
+        button_label: '下一页'
+    };
+    timeline.push(Sses_trail)
+
+    var Pses_trial = {
+        type: jsPsychSurveyLikert,
+        preamble: "<span style='font-size:25px; font-weight:600'>\
+            【请选择和你现在最符合的选项】</span><br/>",
+        questions: [{
+                prompt: '<h2>1. 我有足够的钱买我想要的东西</h2>',
+                name: 'Pses_1',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>2. 我不太需要担心支付我的账单</h2>',
+                name: 'Pses_2',
+                labels: likert_scale_7,
+                required: true
+            },
+            {
+                prompt: '<h2>3. 我想我以后不用太担心钱了</h2>',
+                name: 'Pses_3',
+                labels: likert_scale_7,
+                required: true
+            },
+        ],
+        button_label: '下一页',
+        scale_width: 750,
+    };
+    timeline.push(Pses_trial)
+
+    var Work_trail = {
+        type: jsPsychSurveyHtmlForm,
+        preamble: "<span style='font-size:23px; line-height:120%; font-weight:600'>【请在下面填入你心目中的数值】</span><br/><br/>",
+        html: "<div id='groupform' class='work'>\
+                    <label for='work_1'>1. 对于我的第一份工作，最期望获得下面哪种薪资结算方式</label>\
+                </div>\
+                <div id='groupform' class='work'>\
+                    <input type='radio' id='pay_day' name='work_1' value='1'required/>\
+                    <label for='pay_day'>日薪</label>\
+                    <input type='radio' id='pay_month' name='work_1' value='2'required/>\
+                    <label for='pay_month'>月薪</label>\
+                    <input type='radio' id='pay_year' name='work_1' value='3'required/>\
+                    <label for='pay_year'>年薪</label>\
+                </div>\
+            <div id='groupform' class='work'>\
+                    <label>2. 以月薪为例，对于我的第一份工作，最低可以接受的起始薪资为\
+                    <input type='number' id='work_2' name='work_2' required></input> 元</label>\
+                </div>\
+            <div id='groupform' class='work'>\
+                <label>3. 以月薪为例，对于我的第一份工作，理想的起始薪资水平为\
+                <input type='number' id='work_3' name='work_3' required></input> 元</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>4. 理想的每日工作时间为\
+                <input type='number' id='work_4' name='work_4' required></input> 小时</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>5. 最大可接受的每日工作时间为\
+                <input type='number' id='work_5' name='work_5' required></input> 小时</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>6. 理想的每月工作天数为\
+                <input type='number' id='work_6' name='work_6' required></input> 天</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>7. 最大可接受的每月工作天数为\
+                <input type='number' id='work_7' name='work_7' required></input> 天</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>8. 理想的每年工作天数为\
+                <input type='number' id='work_8' name='work_8' required></input> 天</label>\
+            </div>\
+            <div id='groupform' class='work'>\
+                <label>9. 最大可接受的每年工作天数为\
+                <input type='number' id='work_9' name='work_9' required></input> 天</label>\
+            </div>\
+            ",
+        button_label: '下一页',
+        autofocus: 'test-resp-box',
+    };
+    timeline.push(Work_trail);
+
+    var Fertility_trial_1 = {
+        type: jsPsychSurveyLikert,
+        preamble: "",
+        questions: [{
+                prompt: '<h2>1. 你喜欢孩子的程度</h2>',
+                name: 'Fer_1',
+                labels: ['一点也不喜欢','比较不喜欢','不确定','比较喜欢','非常喜欢'],
+                required: true
+            },
+            {
+                prompt: '<h2>2. 你生育意愿的强烈程度</h2>',
+                name: 'Fer_2',
+                labels: ['一点也不强烈','比较不强烈','不确定','比较强烈','非常强烈'],
+                required: true
+            },
+            {
+                prompt: '<h2>3. 您未来是否想要孩子</h2>',
+                name: 'Fer_3',
+                labels: ['一点也不想','比较不想','不确定','比较想','非常想'],
+                required: true
+            },
+        ],
+        button_label: '下一页',
+        scale_width: 750,
+    };
+    timeline.push(Fertility_trial_1);
+
+    var Fertility_trial_2 = {
+        type: jsPsychSurveyText,
+        questions:[
+            {prompt:'<h2>4. 在无生育政策和其他情况限制的情况下，您期望自己未来有几个孩子?</h2>',name:'Fer_4',placeholder:'如果不想要可以填0',required:true,rows:3,width:60},
+            {prompt:'<h2>5. 如果必须要孩子的话，您预计可能会在哪个年龄要第一个孩子?</h2>',name:'Fer_5',required:true,rows:3,width:60},
+        ],
+        button_label: '下一页',
+    };
+    timeline.push(Fertility_trial_2);
+
+    var likert_scale_5 = [
+        "从无",
+        "极少",
+        "有时",
+        "经常",
+        "总是",
+    ];
+
+    var Impul_trial = {
+        type: jsPsychSurveyLikert,
+        preamble: "<br/>",
+        questions: [{
+                prompt: '<h2>1. 我认真安排每一件事</h2>',
+                name: 'Imp_1',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>2. 我做事不加思考</h2>',
+                name: 'Imp_2',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>3. 遇到问题时我能想出好办法</h2>',
+                name: 'Imp_3',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>4. 我对未来有计划</h2>',
+                name: 'Imp_4',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>5. 我不能很好的控制自己的行为</h2>',
+                name: 'Imp_5',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>6. 必要时我能够长时间考虑一个问题</h2>',
+                name: 'Imp_6',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>7. 我有规律地存钱或攒钱</h2>',
+                name: 'Imp_7',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>8. 我难以控制自己的脾气</h2>',
+                name: 'Imp_8',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>9. 我能从不同的角度考虑问题</h2>',
+                name: 'Imp_9',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>10. 我对工作和获得的收入有计划</h2>',
+                name: 'Imp_10',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>11. 我说话不加思考</h2>',
+                name: 'Imp_11',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>12. 遇到问题时我喜欢慢慢考虑</h2>',
+                name: 'Imp_12',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>13. 我做事比较理智</h2>',
+                name: 'Imp_13',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>14. 我激动时难以控制自己的行为</h2>',
+                name: 'Imp_14',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>15. 遇到问题时我可以耐心地思考解决问题的办法</h2>',
+                name: 'Imp_15',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>16. 我有规律的安排饮食起居</h2>',
+                name: 'Imp_16',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>17. 我容易冲动行事</h2>',
+                name: 'Imp_17',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>18. 做决定前，我喜欢仔细考虑得失</h2>',
+                name: 'Imp_18',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>19. 我离开家之前把事情都安排好</h2>',
+                name: 'Imp_19',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>20. 我不考虑后果而立即行动</h2>',
+                name: 'Imp_20',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>21. 我冷静地思考问题</h2>',
+                name: 'Imp_21',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>22. 我做事时能按计划完成</h2>',
+                name: 'Imp_22',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>23. 我容易冲动性购物</h2>',
+                name: 'Imp_23',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>24. 遇到难题时我不会轻易下结论</h2>',
+                name: 'Imp_24',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>25. 我花钱有计划</h2>',
+                name: 'Imp_25',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>26. 我做事十分莽撞</h2>',
+                name: 'Imp_26',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>27. 我思考问题时能集中注意力</h2>',
+                name: 'Imp_27',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>28. 我很看重对未来的安排</h2>',
+                name: 'Imp_28',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>29. 我想到什么就马上去做</h2>',
+                name: 'Imp_29',
+                labels: likert_scale_5,
+                required: true
+            },
+            {
+                prompt: '<h2>30. 我容易想出新的办法来解决遇到的困难</h2>',
+                name: 'Imp_30',
+                labels: likert_scale_5,
+                required: true
+            },
+        ],
+        button_label: '完成',
+        scale_width: 750,
+    };
+    timeline.push(Impul_trial)
+    
+    var exit_fullscreen = {
+        type: jsPsychFullscreen,
+        fullscreen_mode: false,
+        delay_after: 0
+    };
+    timeline.push(exit_fullscreen)
+
+    // const simulation_options = {
+    //     default: {
+    //         data: {
+    //         rt: 1000
+    //         }
+    //     }
+    // }
+
+    jsPsych.run(timeline)
+    // jsPsych.simulate(timeline,'visual',simulation_options);
+</script>
+
+</html>

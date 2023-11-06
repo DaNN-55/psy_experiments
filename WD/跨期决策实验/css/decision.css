@@ -1,0 +1,171 @@
+
+.jspsych-btn {
+    font-size: 1.2rem;
+    margin: 1.5rem 0 0 0;
+}
+
+.cover {
+    margin: 5vw 15vw 0.2rem 15vw;
+}
+
+.cover-title{
+    color: #c72626;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 1em;
+}
+
+.cover-text{
+    font-weight: bold; 
+    font-size: 1.4rem; 
+    line-height: 2.0rem;
+    text-indent: 2em;
+    text-align: left;
+}
+
+.ready{
+    text-align: center;
+    font-size: 1.2rem;
+    color: lightgray;
+    margin-top: 35px;
+}
+
+
+#jspsych-survey-html-form{
+    width: 800px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px whitesmoke;
+    margin: 20px 0 20px 0;
+}
+
+#jspsych-survey-html-form-next{
+    width : 100%;
+    background-color: #0d6efd;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+::placeholder{
+    color:lightgray;
+    font-size: 98%;
+}
+
+.h2,
+.h1{
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+
+.instruction{
+    font-size: 1.4rem;
+    font-weight: bold;
+    line-height: 1.8rem;
+    margin: 0 20px 1.3em 20px;
+    color: black;
+}
+
+.initial-imgs{
+    zoom: 68%;
+}
+
+textarea{
+    font-size: 1.1rem;
+    height: 200px;
+    rows: 6
+}
+/* #jspsych-instructions-back,
+#jspsych-instructions-next{
+    margin: 0;
+} */
+
+.tips{
+    font-size: 85%;
+    color: #c72626;
+}
+
+.row{
+    color: black;
+}
+
+.col-lg-2{
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.col-lg-2:hover{
+    background-color: lightblue;
+    font-weight: bolder;
+    border-radius: 5px;
+}
+
+.option{
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+    font-weight: bold;
+    max-width: 700px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ladder{
+    zoom: 20%;
+}
+
+
+.btn-light{
+    min-width: 400px;
+    min-height: 245px;
+    border-width: 0.5rem;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 3px 5px 5px #999;
+    white-space: normal;
+}
+
+.btn-light:active{
+    transform: translateY(4px);
+}
+
+#jspsych-html-button-response-button-0{
+    margin-right:50px !important;
+}
+
+.choice-describe{
+    max-width: 340px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.7rem;
+}
+
+.condition,
+.period{
+    color:#c72626;
+    font-weight: bold;
+}
+
+.items{
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.copy{
+    max-width: 340px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.7rem;
+}
+
+
+.form-label{
+    text-align: left;
+    font-size: 1.2rem;
+}

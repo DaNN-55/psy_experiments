@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>面孔吸引力测评</title>
+        <script src="js/jspsych.js"></script>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/plugin-survey-likert.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+    </head>
+
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        // const nowdate = new Date(),
+        //     month = nowdate.getMonth(),
+        //     date = nowdate.getDate(),
+        //     hour = nowdate.getHours(),
+        //     minutes = nowdate.getMinutes()
+
+        // const file_name = month+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            // on_finish: function() {
+            //     jsPsych.data.get().localSave('json',`${file_name}.json`);
+            // }
+          }
+        );
+
+        imgs = ['imgs/men_1.jpg','imgs/men_2.jpg','imgs/men_3.jpg','imgs/men_4.jpg','imgs/men_5.jpg',
+                'imgs/men_6.jpg','imgs/men_7.jpg','imgs/men_8.jpg','imgs/men_9.jpg','imgs/men_10.jpg',
+                'imgs/men_11.jpg','imgs/men_12.jpg','imgs/men_13.jpg','imgs/men_14.jpg','imgs/men_15.jpg',
+                'imgs/men_16.jpg','imgs/men_17.jpg','imgs/men_18.jpg','imgs/men_19.jpg','imgs/men_20.jpg',
+                'imgs/women_1.jpg','imgs/women_2.jpg','imgs/women_3.jpg','imgs/women_4.jpg','imgs/women_5.jpg',
+                'imgs/women_6.jpg','imgs/women_7.jpg','imgs/women_8.jpg','imgs/women_9.jpg','imgs/women_10.jpg',
+                'imgs/women_11.jpg','imgs/women_12.jpg','imgs/women_13.jpg','imgs/women_14.jpg','imgs/women_15.jpg',
+                'imgs/women_16.jpg','imgs/women_17.jpg','imgs/women_18.jpg','imgs/women_19.jpg','imgs/women_20.jpg',]
+
+        timeline_variables = []
+        for (let img of imgs) {
+            img_name_list = img.split('/')
+            img_name = img_name_list[img_name_list.length-1].replace('.jpg', '')
+            timeline_variables.push({img:img,name:img_name})
+        }
+
+        var cover = {
+            type:jsPsychInstructions,
+            pages:[
+                `<div style='margin:5vw 15vw 0.2rem 15vw; font-size:100%'>
+                <div style='color:#c72626; font-weight:bold; font-size:2.5rem; line-height:1.35em; margin-bottom:1.1em'>
+                    欢迎参与<br/>面孔吸引力测评
+                </div>
+                <div style='color:white; font-weight:bold; font-size:1.3rem; line-height:0.8em'>
+                    <p style='margin-bottom:3rem'>答题过程中请勿退出</p>
+                    <p style='color:black; font-size:1.2rem'>
+                        <准备好了请点击开始👇>
+                    </p>
+                </div>
+            </div>`,
+                ],
+            show_clickable_nav:true,
+            allow_backward:false,
+            button_label_next:'开始',
+        };
+        timeline.push(cover)
+
+        var instructions = {
+            type: jsPsychInstructions,
+            pages: [
+                `<h1>指导语</h1>
+                <div class='instruction'>
+                    接下来你会看到一些面孔照片，您只需对屏幕中出现的人物吸引力进行1-9级评分即可<br/>
+                    （1分代表吸引力最低、9分代表吸引力最高）
+                </div>
+                <p></p>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+        timeline.push(instructions)
+        
+        var main_trail = {
+            timeline: [
+                {
+                    type: jsPsychSurveyLikert,
+                    preamble:function () {
+                        var html = `<div class='imgs'>
+                                        <img src='${jsPsych.timelineVariable('img')}'></img>
+                                    </div>`;
+                        return html
+                    },
+                    questions:[
+                        {
+                            prompt:"",
+                            name:'attactive',
+                            labels:[1,2,3,5,6,7,8,9],
+                            required: true,
+                        },
+                    ],
+                    button_label:'下一页',
+                    scale_width:600,
+                    data: {'name':jsPsych.timelineVariable('name')}
+                }
+            ],
+            timeline_variables:timeline_variables,
+            randomize_order: true,
+        };
+        timeline.push(main_trail)
+
+        jsPsych.run(timeline)
+    </script>
+</html>
