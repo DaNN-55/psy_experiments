@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>方位感知</title>
+        <script src="js/jspsych.js"></script>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/plugin-survey-html-form.js"></script>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        const nowdate = new Date(),
+            month = nowdate.getMonth(),
+            date = nowdate.getDate(),
+            hour = nowdate.getHours(),
+            minutes = nowdate.getMinutes()
+
+        const file_name = month+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.get().localSave('csv',`${file_name}.csv`);
+            }
+          }
+        );
+
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+        timeline.push(set_style)
+
+        var info = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: "",
+            html: ` <p class='h2' style='color:black'>基本信息</p>
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>编号</span>
+                                <input class='form-control' type='number' name='order' required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>姓名</span>
+                                <input class='form-control' type='text' name='name' required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>组别</span>
+                                <input class='form-control' type='number' name='group' required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>年龄</span>
+                                <input class='form-control' type='number' name='age' required/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col auto'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>性别</span>
+                                <select class='form-select' name='gender' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>男</option>
+                                    <option value='2'>女</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='input-group mb-3'>
+                                <span class='input-group-text'>利手</span>
+                                <select class='form-select' name='hands' required/>        
+                                    <option value=''></option>
+                                    <option value='1'>右</option>
+                                    <option value='2'>左</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>`,
+            button_label: '确定',
+            dataAsArray: true,
+            autofocus: 'test-resp-box',
+            data:{task:'info'},
+        };
+        timeline.push(info)
+
+        var instruction = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <p class='h1'>实验指导语</p>
+                    <div class='cover-text'>
+                        调整虚拟人的身体姿态，使其姿态能够表示VR中画面停止时所处的姿态。<br/>
+                        屏幕上会呈现4个按钮，分别为两个粗调和两个细调，粗调为5度，细调为1度
+                    </div>
+                    <div class='ready'><如果准备好了，请点击开始👇></div>
+                </div>`
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+        timeline.push(instruction)
+
+        var main_trail1 = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: '',
+            html:  `<div>
+                        <img id="image" src="imgs/img.png" style='margin-bottom:50px'>
+                    </div>
+                    <div class="container overflow-hidden text-center">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_left1" type="button" class="btn btn-secondary">
+                                        <b>粗调左转</b>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_left2" type="button" class="btn btn-secondary">
+                                        微调左转
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_right1" type="button" class="btn btn-secondary">
+                                        <b>粗调右转</b>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_right2" type="button" class="btn btn-secondary">
+                                        微调右转
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+            on_load: function () {
+                let Angle = 0;
+                const imageElement = document.getElementById("image");
+                const turnleftButton1 = document.getElementById("turn_right1");
+                const turnrightButton1 = document.getElementById("turn_left1");
+                const turnleftButton2 = document.getElementById("turn_right2");
+                const turnrightButton2 = document.getElementById("turn_left2");
+
+                function rotateImage(degrees) {
+                    Angle += degrees;
+                    imageElement.style.transform = `rotate(${Angle}deg)`;
+                    jsPsych.data.addProperties({angle1:Angle});
+                }
+
+                turnleftButton1.addEventListener("click", function(event) {
+                    rotateImage(5);
+                });
+
+                turnrightButton1.addEventListener("click", function(event) {
+                    rotateImage(-5);
+                });
+
+                turnleftButton2.addEventListener("click", function(event) {
+                    rotateImage(1);
+                });
+
+                turnrightButton2.addEventListener("click", function(event) {
+                    rotateImage(-1);
+                });
+            },
+            button_label: '确定',
+            autofocus: 'test-resp-box',
+            data:{task:'trail1'}
+        };
+        timeline.push(main_trail1)
+
+        var main_trail2 = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: '',
+            html:  ` <div>
+                        <img id="image" src="imgs/img.png" style='margin-bottom:50px'>
+                    </div>
+                    <div class="container overflow-hidden text-center">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_left1" type="button" class="btn btn-secondary">
+                                        <b>粗调左转</b>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_left2" type="button" class="btn btn-secondary">
+                                        微调左转
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_right1" type="button" class="btn btn-secondary">
+                                        <b>粗调右转</b>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <button id="turn_right2" type="button" class="btn btn-secondary">
+                                        微调右转
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+            on_load: function () {
+                let Angle = 0;
+                const imageElement = document.getElementById("image");
+                const turnleftButton1 = document.getElementById("turn_right1");
+                const turnrightButton1 = document.getElementById("turn_left1");
+                const turnleftButton2 = document.getElementById("turn_right2");
+                const turnrightButton2 = document.getElementById("turn_left2");
+
+                function rotateImage(degrees) {
+                    Angle += degrees;
+                    imageElement.style.transform = `rotate(${Angle}deg)`;
+                    jsPsych.data.addProperties({angle2:Angle});
+                }
+
+                turnleftButton1.addEventListener("click", function(event) {
+                    rotateImage(5);
+                });
+                turnrightButton1.addEventListener("click", function(event) {
+                    rotateImage(-5);
+                });
+
+                turnleftButton2.addEventListener("click", function(event) {
+                    rotateImage(1);
+                });
+                turnrightButton2.addEventListener("click", function(event) {
+                    rotateImage(-1);
+                });
+            },
+            button_label: '确定',
+            autofocus: 'test-resp-box',
+            data:{task:'trail2'}
+        };
+        timeline.push(main_trail2)
+
+        jsPsych.run(timeline)
+    </script>
+</html>
