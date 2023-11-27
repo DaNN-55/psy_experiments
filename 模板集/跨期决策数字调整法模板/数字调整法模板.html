@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>跨期决策数字调整法模板</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-html-button-response.js"></script>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+        <script src="js/plugin-html-keyboard-response.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        /* 
+            储存文件格式和命名数据文件
+            每做完一个被试浏览器都会自动生成一个以时间命名的数据文件
+            因为每个人的数据命名是不同的，如果相同则有可能出现覆盖，
+            所以以答题时间为命名是唯一的 
+        */
+        const nowdate = new Date(),
+            month = nowdate.getMonth(),
+            date = nowdate.getDate(),
+            hour = nowdate.getHours(),
+            minutes = nowdate.getMinutes()
+
+        const file_name = month+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.get().localSave('csv',`${file_name}.csv`);
+            }
+          }
+        );
+
+        /* 
+          实验的基础设置，这部分直接复制即可，复制完记得在head标签里引用call-function插件
+        */
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+        timeline.push(set_style)
+
+        /*
+            决策指导语部分，其中中文可以随意更改，如果指导语过长会自动换行，
+            但是如果换行位置不够美观，请在期望换行的位置插入<br/> 标签即可
+        */
+        var instruction = {
+            type: jsPsychInstructions,
+            pages: [
+                    `<div class='instruction' style='color:white'>
+                            请你想象一下，你将获得一笔钱，你需要在以下两种方式之间进行选择，你会选择哪种方式？
+                        </div>
+                        <div class='option'>
+                            <p>A：现在获得一笔数额较小的钱</p>
+                            <p>B：等待一段时间后获得一笔数额较大的钱</p>
+                    </div>
+                    <div class='ready'><如果理解了上述指导语，请点击👇></div>`
+                ],
+            button_label_next: '开始',
+            show_clickable_nav: true,
+            allow_backward: false,
+        };
+        timeline.push(instruction)
+
+        /*
+            决策的主程序
+            每个tails都由5次选择组成，但是每次即时金额的变化不一样，所以，我trails写为一个时间线，根据被试的选择生成下一个页面要呈现的值，
+            由于要执行多个trials，所以我将该时间线写为一个函数，将要呈现的变量定义为时间线变量，通过输入不同的时间线变量，输出对应的trails，
+            （具体解释请看官方文档：https://shaobin-jiang.github.io/jsPsych-Chinese-Documentation/latest/overview/timeline/#_5）
+            每个tarils的第一个试次的选项顺序固定为左即时，右延迟，由于之后每一次选择，左右选项的顺序为随机呈现，
+            所以原本根据choice的记录的response（对于固定顺序的choice，response会记录依次记录0，1，2...）就不能作为被试选择即时和延迟的依据，
+            所以，我定义即时选项的标签id为sooner，延迟选项的标签id为later，同时通过save_trial_parameters记录每次的choices值
+            通过比较每次选择的response和每次选择的choice中第一个内容中是否有‘sooner‘字符串来判断被试选择的是即时还是延迟，
+            举例：当被是选择左边选项，response会记录0，同时我需要知道左边选项中是否有’sooner‘，来判断被试选择的是否是即时选项
+                因此，一共有四种可能，其中当response=0和左边选项中包含’sooner‘，
+                以及response=1和左边选项不包含“sooner”时才可判断被试选择的即时选项，其余可能都是被试选择都为延迟选项
+                同时记录即时值，延迟值，计算出下个试次的即时值
+                （这就是on_finish函数中的内容表达的意思）
+            所有的即时数值在数据文件中会通过‘SDR_1’的形式储存，其中’SDR_6‘为被试的主观相等点，用于之后计算
+            当然还有简单的写法，这个完全可以写成一个循环，只是时间紧这个好懂，期待有缘人优化该部分代码
+        */
+        function main_trail(timeline_variables) {
+            var trails = {
+                timeline : [
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: jsPsych.timelineVariable('instruction'),
+                        choices: [function () {
+                                    var html =
+                                        `<div class='choice-describe'>
+                                            <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                            <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                        </div>`
+                                    return html;
+                                    },
+                                    function () {
+                                        var html =
+                                            `<div class='choice-describe'>
+                                                <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                                <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                            </div>`
+                                        return html
+                                    },
+                                ],
+                        button_html : `<button class="btn btn-light btn-lg">%choice%</button>`,
+                        on_finish: function (data) {
+                            let sdr = jsPsych.timelineVariable('values').slice(-1)[0]
+                            let ldr = jsPsych.timelineVariable('values')[0]
+
+                            let response = jsPsych.data.get().last(1).values()[0].response
+                            let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                            if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                                sdr_2 = Math.round(sdr - 0.25*ldr)
+                            } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                                sdr_2 = Math.round(sdr + 0.25*ldr)
+                                };
+
+                            data.task =  jsPsych.timelineVariable('task')
+                            data.SDR_2 = sdr_2
+                            data.SDR_1 = sdr
+                            data.LDR = ldr
+                            jsPsych.timelineVariable('values').push(sdr_2)
+                        },
+                        save_trial_parameters: {choices: true,stimulus: false}
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: jsPsych.timelineVariable('instruction'),
+                        choices: function () {
+                            var button_choices = [
+                                `<div class='choice-describe'>
+                                    <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                </div>`,
+                                `<div class='choice-describe'>
+                                    <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                </div>`
+                            ];
+                            return jsPsych.randomization.shuffle(button_choices);
+                        },
+                        button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                        on_finish: function (data) {
+                            let ldr = jsPsych.timelineVariable('values')[0]
+                            let sdr_2 = jsPsych.timelineVariable('values').slice(-1)[0]
+                            let response = jsPsych.data.get().last(1).values()[0].response
+                            let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                            if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                                sdr_3 = Math.round(sdr_2 - 0.125*ldr)
+                            } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                                sdr_3 = Math.round(sdr_2 + 0.125*ldr)
+                                };
+                            
+                            data.task =  jsPsych.timelineVariable('task')
+                            data.SDR_3 = sdr_3
+                            jsPsych.timelineVariable('values').push(sdr_3)
+                        },
+                        save_trial_parameters: {choices: true,stimulus: false}
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: jsPsych.timelineVariable('instruction'),
+                        choices: function () {
+                            var button_choices = [
+                                `<div class='choice-describe'>
+                                    <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                </div>`,
+                                `<div class='choice-describe'>
+                                    <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                </div>`
+                            ];
+                            return jsPsych.randomization.shuffle(button_choices);
+                        },
+                        button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                        on_finish: function (data) {
+                            let ldr = jsPsych.timelineVariable('values')[0]
+                            let sdr_3 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                            let response = jsPsych.data.get().last(1).values()[0].response
+                            let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                            if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                                sdr_4 = Math.round(sdr_3 - 0.0625*ldr)
+                            } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                                sdr_4 = Math.round(sdr_3 + 0.0625*ldr)
+                                };
+
+                            data.task =  jsPsych.timelineVariable('task')
+                            data.SDR_4 = sdr_4
+                            jsPsych.timelineVariable('values').push(sdr_4)
+                        },
+                        save_trial_parameters: {choices: true,stimulus: false}
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: jsPsych.timelineVariable('instruction'),
+                        choices: function () {
+                            var button_choices = [
+                                `<div class='choice-describe'>
+                                    <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                </div>`,
+                                `<div class='choice-describe'>
+                                    <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                </div>`
+                            ];
+                            return jsPsych.randomization.shuffle(button_choices);
+                        },
+                        button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                        on_finish: function (data) {
+                            let ldr = jsPsych.timelineVariable('values')[0]
+                            let sdr_4 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                            let response = jsPsych.data.get().last(1).values()[0].response
+                            let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                            if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                                sdr_5 = Math.round(sdr_4 - 0.03125*ldr)
+                            } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                                sdr_5 = Math.round(sdr_4 + 0.03125*ldr)
+                                };
+
+                            data.task =  jsPsych.timelineVariable('task')
+                            data.SDR_5 = sdr_5
+                            jsPsych.timelineVariable('values').push(sdr_5)
+                        },
+                        save_trial_parameters: {choices: true,stimulus: false}
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: jsPsych.timelineVariable('instruction'),
+                        choices: function () {
+                            var button_choices = [
+                                `<div class='choice-describe'>
+                                    <span id='sooner' class='condition'>${jsPsych.timelineVariable('sooner_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values').slice(-1)[0]}</span> 元
+                                </div>`,
+                                `<div class='choice-describe'>
+                                    <span id='later' class='condition'>${jsPsych.timelineVariable('later_condition')}</span> 获得
+                                    <span class='items'>${jsPsych.timelineVariable('values')[0]}</span> 元
+                                </div>`
+                            ];
+                            return jsPsych.randomization.shuffle(button_choices);
+                        },
+                        button_html : `<button type='button' class="btn btn-light btn-lg">%choice%</button>`,
+                        on_finish: function (data) {
+                            let ldr = jsPsych.timelineVariable('values')[0]
+                            let sdr_5 = jsPsych.timelineVariable('values').slice(-1)[0]
+
+                            let response = jsPsych.data.get().last(1).values()[0].response
+                            let cond = jsPsych.data.get().last(1).values()[0].choices[0].includes('sooner')
+                            if ((cond == true && response === 0) || (cond == false && response === 1)) {
+                                sdr_6 = Math.round(sdr_5 - 0.015625*ldr)
+                            } else if ((cond == true && response === 1) || (cond == false && response === 0)) {
+                                sdr_6 = Math.round(sdr_5 + 0.015625*ldr)
+                                };
+
+                            data.task =  jsPsych.timelineVariable('task')
+                            data.SDR_6 = sdr_6
+                            jsPsych.timelineVariable('values').push(sdr_6)
+                        },
+                        save_trial_parameters: {choices: true,stimulus: false}
+                    },
+                    {
+                        type: jsPsychHtmlKeyboardResponse,
+                        stimulus: `<div class='spinner-border text-light m-5' role='status'><span class='visually-hidden'>loading</span></div> `,
+                        choices: "NO_KEYS",
+                        trial_duration: 1000,
+                    }
+                ],
+                timeline_variables: timeline_variables,
+                randomize_order:true,
+                post_trial_gap: 400
+            };
+            return trails
+        }
+
+        /*
+            每次选择上方的文字描述内容，其中中文可以随意更改
+        */
+        var decision_instruction = `<div class='instruction' style='color:white'>你会选择以下哪种方式？</div>`
+
+        /*
+            由于每个函数返回的时间线本身，所以在timeline中直接push函数即可
+            instruction为每次选择在选项上方呈现的描述
+            sooner_condtion为即时选项要呈现的条件，字符串格式
+            later_condition为延迟选项要呈现的条件，字符串格式
+            values为第一个选择中要呈现的即时和延迟金额形成的列表，顺序不能变，[延迟金额，延迟金额的一半（即时金额）]
+            task为该block的独有名称，方便在数据中查找
+            以上内容都可以根据实际需求更改
+        */
+        timeline.push(
+            main_trail([
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一天后',values:[228,114], task:'origin_day_low'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一天后',values:[456,228],task:'origin_day_high'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一周后',values:[1250,625], task:'origin_week_low'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一周后',values:[2500,1250],task:'origin_week_high'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一月后',values:[5000,2500], task:'origin_month_low'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一月后',values:[10000,5000],task:'origin_month_high'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'半年后',values:[30000,15000], task:'origin_half_year_low'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'半年后',values:[60000,30000],task:'origin_half_year_high'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一年后',values:[60000,30000], task:'origin_year_low'},
+                {instruction:decision_instruction,sooner_condition:'现在',later_condition:'一年后',values:[120000,60000],task:'origin_year_high'},
+            ])
+        ),
+
+        jsPsych.run(timeline)
+    </script>
+</html>

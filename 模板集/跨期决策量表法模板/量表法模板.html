@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>跨期决策量表法模板</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-html-button-response.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        /* 
+            储存文件格式和命名数据文件
+            每做完一个被试浏览器都会自动生成一个以时间命名的数据文件
+            因为每个人的数据命名是不同的，如果相同则有可能出现覆盖，
+            所以以答题时间为命名是唯一的 
+        */
+        const nowdate = new Date(),
+        month = nowdate.getMonth(),
+        date = nowdate.getDate(),
+        hour = nowdate.getHours(),
+        minutes = nowdate.getMinutes()
+
+        const file_name = month+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.get().localSave('csv',`${file_name}.csv`);
+            }
+          }
+        );
+
+        /* 
+          实验的基础设置，这部分直接复制即可，复制完记得在head标签里引用call-function插件
+        */
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+        timeline.push(set_style)
+
+        /*
+            指导语部分
+            可以将里面的中文随意更改为你所需要的指导语
+            如果你的指导语过长会自动换行
+            但是如果你认为换行的位置不好看
+            那么请在你需要换行的地方插入一个 <br/> 标签即可
+        */ 
+        var instructions = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='instruction' style='color:white'>
+                        请你想象一下，你将获得一笔钱，你需要在以下两种方式之间进行选择，你会选择哪种方式？
+                    </div>
+                    <div class='option'>
+                        <p>A：现在获得一笔数额较小的钱</p>
+                        <p>B：等待一段时间后获得一笔数额较大的钱</p>
+                </div>
+                <div class='ready'><如果理解了上述指导语，请点击👇></div>`
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+        timeline.push(instructions)
+
+        /*
+            主程序
+            以下内容请勿改动，请整体复制粘贴使用，别忘了head里的js和css内容
+        */
+        var normal_trails = {
+            timeline: [{
+                type: jsPsychHtmlButtonResponse,
+                stimulus: `<div class='instruction' style='color:white'>你会选择以下哪种方式？</div>`,
+                choices: [function () {
+                        var html = 
+                            `<div class='choice-describe'>
+                                <span id='sooner' class='condition'></span> 现在获得
+                                <span class='items'> ${jsPsych.timelineVariable('SDR')}</span> 元
+                            </div>`
+                        return html;
+                    },
+                    function () {
+                        var html =
+                            `<div class='choice-describe'>
+                                <span id='later' class='condition'> ${jsPsych.timelineVariable('day')}</span> 天后获得
+                                <span class='items'> ${jsPsych.timelineVariable('LDR')}</span> 元
+                            </div>`
+                        return html
+                    },
+                ],
+                button_html : `<button class="btn btn-light btn-lg">%choice%</button>`,
+                data: {'order': jsPsych.timelineVariable('order')},
+            }, ],
+            timeline_variables: [
+                {SDR: '54',LDR: '55',day: '117',order: "normal_1"},
+                {SDR: '55',LDR: '75',day: '61',order: "normal_2"},
+                {SDR: '19',LDR: '25',day: '53',order: "normal_3"},
+                {SDR: '31',LDR: '85',day: '7',order: "normal_4"},
+                {SDR: '14',LDR: '25',day: '19',order: "normal_5"},
+                {SDR: '47',LDR: '50',day: '160',order: "normal_6"},
+                {SDR: '15',LDR: '35',day: '13',order: "normal_7"},
+                {SDR: '25',LDR: '60',day: '14',order: "normal_8"},
+                {SDR: '78',LDR: '80',day: '162',order: "normal_9"},
+                {SDR: '40',LDR: '55',day: '62',order: "normal_10"},
+                {SDR: '11',LDR: '30',day: '7',order: "normal_11"},
+                {SDR: '67',LDR: '75',day: '119',order: "normal_12"},
+                {SDR: '34',LDR: '35',day: '186',order: "normal_13"},
+                {SDR: '27',LDR: '50',day: '21',order: "normal_14"},
+                {SDR: '69',LDR: '85',day: '91',order: "normal_15"},
+                {SDR: '49',LDR: '60',day: '89',order: "normal_16"},
+                {SDR: '80',LDR: '85',day: '157',order: "normal_17"},
+                {SDR: '24',LDR: '35',day: '29',order: "normal_18"},
+                {SDR: '33',LDR: '80',day: '14',order: "normal_19"},
+                {SDR: '28',LDR: '30',day: '179',order: "normal_20"},
+                {SDR: '34',LDR: '50',day: '30',order: "normal_21"},
+                {SDR: '25',LDR: '30',day: '80',order: "normal_22"},
+                {SDR: '41',LDR: '75',day: '20',order: "normal_23"},
+                {SDR: '54',LDR: '60',day: '111',order: "normal_24"},
+                {SDR: '54',LDR: '80',day: '30',order: "normal_25"},
+                {SDR: '22',LDR: '25',day: '136',order: "normal_26"},
+                {SDR: '20',LDR: '55',day: '7',order: "normal_27"},
+            ],
+            post_trial_gap: 400,
+        };
+        timeline.push(normal_trails)
+
+        jsPsych.run(timeline)
+    </script>
+</html>

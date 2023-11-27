@@ -19,6 +19,7 @@
     <script src='js/plugin-html-keyboard-response.js'></script>
     <script src='js/plugin-survey-text.js'></script>
     <script src='js/plugin-fullscreen.js'></script>
+    <script src='js/plugin-call-function.js'></script>
 </head>
 
 <body></body>
@@ -42,11 +43,45 @@
         }
     });
 
+    
+    var set_style = {
+        type: jsPsychCallFunction,
+        func: function () {
+            document.body.style.backgroundColor = 'black' // background color
+            document.body.style.color = 'white' // font color
+            document.body.style.fontFamily = '微软雅黑'
+            document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+            document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+            document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+            document.onkeydown = function () {
+                // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                    (event.ctrlKey && event.keyCode in { 85: 'U' })
+                ) {
+                    return false
+                }
+            }
+        },
+    }
+    timeline.push(set_style)
+
     // 全屏显示
     var enter_fullscreen = {
         type: jsPsychFullscreen,
-        message: '<p>本次实验需要进入全屏模式，请点击下方的允许按钮</p>',
-        button_label: '允许',
+        message: `
+            <p style="font: 16pt 微软雅黑; text-align: left; line-height: 1.6em">
+            <b>
+            测验将在一个「全屏页面」开始，为确保最佳效果，请你：<br/>
+            （1）在电脑上进行测验，并使用主流浏览器打开本网页<br/>
+            &emsp;&emsp;（Chrome、Edge、Firefox、Safari等，不要用IE）<br/>
+            （2）关掉电脑上其他正在运行的程序或将其最小化<br/>
+            （3）将手机调至静音，并尽可能减少环境噪音干扰<br/>
+            （4）在测验过程中不要退出全屏<br/>
+            （5）务必认真作答<br/><br/>
+            </b>
+            如果你同意参与，并且清楚理解了上述要求，请点击开始：
+            </p>`,
+        button_label: '点击这里全屏开始',
         fullscreen_mode: true
     };
     timeline.push(enter_fullscreen)
@@ -56,7 +91,7 @@
         type: jsPsychInstructions,
         pages: [
             "<p style='font:bold 41px 微软雅黑; color:#B22222'>欢迎参与跨期决策实验</p>\
-            <p style='font:20px 微软雅黑; color:gray'><br/><br/>\
+            <p style='font:20px 微软雅黑; color:white'><br/><br/>\
             <b>该实验没有时间限制，请在认真思考后做答</b><br/><br/>\
             <b>在实验过程中请勿退出</b><br/><br/>\
             <b>点击下面的开始按钮即可开始实验</b></p>\
@@ -154,7 +189,7 @@
         dataAsArray: true,
         autofocus: 'test-resp-box',
     };
-    timeline.push(info);
+    // timeline.push(info);
 
     //slider实验
     var slider_instr = {
@@ -266,7 +301,7 @@
         ],
         randomize_order: true
     }
-    timeline.push(silder_trails)
+    // timeline.push(silder_trails)
 
     //时间折现范式
     var TD_instr = {
@@ -299,12 +334,12 @@
                     return html
                 },
             ],
-            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            button_html: "<button class='jspsych-btn-td' name='td-btn'>%choice%</button>",
             data: {
                 'order': jsPsych.timelineVariable('order')
             },
             on_load: function () {
-                setTimeout(function () {
+                jsPsych.pluginAPI.setTimeout(function () {
                     $('button[name="td-btn"]').removeAttr('disabled');
                 }, 800);
             },
@@ -473,7 +508,7 @@
             },
         ],
     };
-    timeline.push(normal_trails)
+    // timeline.push(normal_trails)
 
     var break_time = {
         type: jsPsychHtmlKeyboardResponse,
@@ -503,7 +538,7 @@
                     return html
                 },
             ],
-            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            button_html: "<button class='jspsych-btn-td' name='td-btn'>%choice%</button>",
             data: {
                 'order': jsPsych.timelineVariable('order')
             },
@@ -751,7 +786,7 @@
                     return html
                 },
             ],
-            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            button_html: "<button class='jspsych-btn-td' name='td-btn'>%choice%</button>",
             data: {
                 'order': jsPsych.timelineVariable('order')
             },
@@ -999,7 +1034,7 @@
                     return html
                 },
             ],
-            button_html: "<button class='jspsych-btn-td' name='td-btn' disabled>%choice%</button>",
+            button_html: "<button class='jspsych-btn-td' name='td-btn' >%choice%</button>",
             data: {
                 'order': jsPsych.timelineVariable('order')
             },
@@ -1236,15 +1271,15 @@
         return arr;
     };
 
-    let trails2 = shuffle([day_trails, month_trails, year_trails])
-    trails2.splice(1, 0, break_time)
-    trails2.splice(3, 0, break_time)
-    trails2.push(break_time)
+    // let trails2 = shuffle([day_trails, month_trails, year_trails])
+    // trails2.splice(1, 0, break_time)
+    // trails2.splice(3, 0, break_time)
+    // trails2.push(break_time)
 
-    var exp2_node = {
-        timeline: trails2,
-    }
-    timeline.push(exp2_node)
+    // var exp2_node = {
+    //     timeline: trails2,
+    // }
+    // timeline.push(exp2_node)
 
     // 实验三
     var day_month_trails = {
@@ -1736,14 +1771,14 @@
         ],
     };
 
-    let trails3 = shuffle([day_month_trails, day_year_trails, month_year_trails])
-    trails3.splice(1, 0, break_time)
-    trails3.splice(3, 0, break_time)
+    // let trails3 = shuffle([day_month_trails, day_year_trails, month_year_trails])
+    // trails3.splice(1, 0, break_time)
+    // trails3.splice(3, 0, break_time)
 
-    var node2 = {
-        timeline: trails3,
-    }
-    timeline.push(node2)
+    // var node2 = {
+    //     timeline: trails3,
+    // }
+    // timeline.push(node2)
 
     // 量表指导语
     var scale_instr = {
@@ -1762,7 +1797,7 @@
         button_label_next: '开始',
         allow_keys: false,
     };
-    timeline.push(scale_instr)
+    // timeline.push(scale_instr)
 
     // 李克特量表的选项
     var likert_scale_7 = [
@@ -1808,7 +1843,7 @@
         button_label: '下一页',
         scale_width: 750,
     };
-    timeline.push(Cses_trial)
+    // timeline.push(Cses_trial)
 
     var Unpre_trial = {
         type: jsPsychSurveyLikert,

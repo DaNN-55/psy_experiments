@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Experiment Name</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-survey-html-form.js"></script>
+        <script src="js/bootstrap.bundle.min.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const timeline = [];
+
+        /* 
+            储存文件格式和命名数据文件
+            每做完一个被试浏览器都会自动生成一个以时间命名的数据文件
+            因为每个人的数据命名是不同的，如果相同则有可能出现覆盖，
+            所以以答题时间为命名是唯一的 
+        */
+        const nowdate = new Date(),
+            month = nowdate.getMonth(),
+            date = nowdate.getDate(),
+            hour = nowdate.getHours(),
+            minutes = nowdate.getMinutes()
+
+        const file_name = month+'_'+date+'_'+hour+'_'+minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.get().localSave('csv',`${file_name}.csv`);
+            }
+          }
+        );
+
+        /* 
+          实验的基础设置，这部分直接复制即可，复制完记得在head标签里引用call-function插件
+        */
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+        timeline.push(set_style)
+
+        /*
+            以下为长问卷模板主程序请勿做任何改动，请直接复制粘贴使用，别忘了head里面的内容
+        */
+        function html_scale(scale_list) {
+            var scale_html = `<div class='instruction'>${scale_list[0]}</div>
+                                <div class='row mb-3'>`
+            for (var l = 1;l< scale_list.length-1;l++){
+                scale_html += `<label class="form-label">${scale_list[l]}</label>
+                                    <div class="btn-group">`
+
+                var options = scale_list[scale_list.length - 1];
+
+                for (var i = 0; i < options.length; i++) {
+                    scale_html += `
+                        <input type="radio" class="btn-check" name="Pses_${l}" id="Pses_${l}${i+1}" value="${i+1}" required>
+                        <label class="btn btn-outline-primary" for="Pses_${l}${i+1}">${options[i]}</label>
+                    `;}
+                scale_html += '</div>';
+            }
+            scale_html += '</div>'
+            return scale_html
+        };
+
+        /*
+            以下为长问卷自定义部分,主要可改动内容：
+            scale_list是量表呈现内容的主要参数值，
+                第一行为量表顶端想呈现给被试的内容，如果不需要，请用''代替，
+                第二行到倒数第二行为量表的每一道题目，可以按需求更改，
+                最后一行为量表的评分等级，请按照样例格式填写，有几级就填写几个，如果是数字请将文字改为数字即可
+                例如：['1','2','3','4','5','6','7'], 
+                    ['非常不同意','不同意','不确定','同意','非常同意']
+                以上内容要注意书写格式，特别注意 '' 和 , 的位置
+            Pses_scale则是调用jspsych的suvery-html-form插件，可参考（https://shaobin-jiang.github.io/jsPsych-Chinese-Documentation/latest/plugins/survey-html-form/）
+                button_label是量表提交按钮呈现的文字，可更改
+                data：{task：‘Pses’}是数据文件中该量表的唯一名称，可根据实际使用更改，可参考（https://shaobin-jiang.github.io/jsPsych-Chinese-Documentation/latest/overview/plugins/#data）
+            该方法创建的量表结果可以直接计算，无需+1
+            最后别忘了将时间线内的变量改为你所更改的变量
+        */
+        scale_list = [
+            '请仔细阅读每一道题，选择和你现在最符合的选项',
+            '1. 我有足够的钱买我想要的东西。',
+            '2. 我不太需要担心支付我的账单。',
+            '3. 我想我以后不用太担心钱了。',
+            ['非常不同意','不同意','比较不同意','不确定','比较同意','同意','非常同意']
+        ]
+        var Pses_scale = {
+            type: jsPsychSurveyHtmlForm,    
+            preamble: '',
+            html: html_scale(scale_list),
+            button_label: '下一页',
+            autofocus: 'test-resp-box',
+            data:{task:'Pses'}
+        }
+        timeline.push(Pses_scale)
+
+
+        /*
+            有时候评价一个维度的描述太长，如果每次都给被试展示就会很罗嗦，
+            所以编写了以下函数实现，当被试需要解释时，将鼠标移动到相应的维度上即可查看解释
+            以下为维度问卷模板主程序请勿做任何改动，请直接复制粘贴使用，别忘了head里面的内容
+        */
+        function dim_scale(dim_list) {
+            var scale_html = `<div class='instruction'>${dim_list[0]}<p class='tips'>${dim_list[1]}</p></div>`
+            for (var l = 2;l< dim_list.length-1;l++){
+                scale_html += `<div class='row'>
+                                <div class="input-group mb-3">
+                                    <div class="col col-lg-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title='${dim_list[l][2]}'>
+                                        ${dim_list[l][0]}
+                                    </div>
+                                    <div class="btn-group col-lg-10">`
+
+                var options = dim_list.slice(-1);
+                for (var i = 0; i < options; i++) {
+                    scale_html += `
+                            <input type="radio" class="btn-check" name="${dim_list[l][1]}" id='${dim_list[l][1]}_${i+1}' value='${i+1}' required>
+                            <label class="btn btn-outline-primary" for="${dim_list[l][1]}_${i+1}">${i+1}</label>`;
+                        }
+                scale_html += '</div></div></div>';
+            }
+
+            return scale_html
+        }
+
+        /*
+            以下为维度问卷自定义部分,主要可改动内容：
+            dim_list为量表的主要参数：
+                第一行为量表最上方给被试呈现的内容
+                第二行为提醒被试如果有遗忘可以随时将鼠标移至相应维度，如果不需要，请用 '' 代替
+                第三行至倒数第二行为主要评价的维度，命名和详细解释：
+                    每一行的第一个位置为被试看到的维度名称，可以根据情况自行命名
+                    第二个位置为该维度，对应的英文标识，该标识就是最终数据储存时该题的标识，可以根据实际情况改为自己认为合适的词汇（拼音也可以）不能是中文，数字或者标点符号等
+                    第三个位置为该维度的详细解释，可以根据自己的实际情况更改
+                最后一行为评分等级，可以根据实际情况进行更改
+            imgs_scale则是调用jspsych的suvery-html-form插件，可参考（https://shaobin-jiang.github.io/jsPsych-Chinese-Documentation/latest/plugins/survey-html-form/）
+                button_label是量表提交按钮呈现的文字，可更改
+                data：{task:'img_scale'}是数据文件中该量表的唯一名称，可根据实际使用更改，可参考（https://shaobin-jiang.github.io/jsPsych-Chinese-Documentation/latest/overview/plugins/#data）
+            该方法创建的量表结果可以直接计算，无需+1
+            最后别忘了将时间线内的变量改为你所更改的变量
+        */
+        dim_list = [
+            `请对你刚才看完这组新闻的感受进行评分<br/><分数越低代表该维度程度越低，分数越高代表该维度程度越高>`,
+            `<请先将鼠标移到相应的维度阅读详细解释后再选择>`,
+            ['富裕度','rich','看完这些新闻，如果你感到社会是富裕的，则评分越高，如果感到社会是贫穷的，则评分越低'],
+            ['公平感','fair','看完这些新闻，如果你感到社会是平等的，则评分越高，如果感到社会是不平等的，则评分越低'],
+            ['可持续性','continue','看完这些新闻，如果你感到社会是可持续发展的（在满足当前需要的同时，不能以牺牲后代利益为代价），则评分越高，如果感到社会发展是不可持续的，则评分越低'],
+            ['共同富裕','common','看完这些新闻，如果你感社会是共同富裕的，则评分越高，如果没有感到社会是共同富裕的，则评分越低'],
+            7
+        ]
+
+        var imgs_scale = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: ``,
+            html:dim_scale(dim_list),
+            button_label: '下一页',
+            dataAsArray: true,
+            on_load: function () {
+                const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+                const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+            },
+            data:{task:'img_scale'}
+        };
+        timeline.push(imgs_scale)
+
+        jsPsych.run(timeline)
+    </script>
+</html>

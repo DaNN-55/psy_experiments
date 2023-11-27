@@ -1,0 +1,67 @@
+
+.instruction{
+    font-size: 1.4rem;
+    font-weight: bold;
+    line-height: 1.8rem;
+    margin: 50px 20px 1.3em 20px;
+    color: black;
+}
+
+.option{
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+    font-weight: bold;
+    max-width: 700px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ready{
+    text-align: center;
+    font-size: 1rem;
+    color: lightgray;
+    margin-top: 35px;
+}
+
+
+.choice-describe{
+    max-width: 340px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.7rem;
+}
+
+.condition,
+.period{
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.items{
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.btn-light{
+    min-width: 400px;
+    min-height: 245px;
+    border-width: 0.5rem;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 3px 5px 5px #999;
+    white-space: normal;
+}
+
+.btn-light:active{
+    transform: translateY(4px);
+}
+
+.jspsych-btn {
+    font-size: 15pt;
+    font-family: 微软雅黑;
+    font-weight: normal;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
