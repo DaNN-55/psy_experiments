@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>择偶复制实验</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-browser-check.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-fullscreen.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+        <script src="js/plugin-survey-html-form.js"></script>
+        <script src="js/plugin-html-keyboard-response.js"></script>
+        <script src="js/plugin-html-button-response.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const jsPsych = initJsPsych({
+            on_finish: function() {
+                jsPsych.data.displayData('json')
+            }
+          }
+        );
+
+        var brower = {
+            type: jsPsychBrowserCheck,
+            minimum_width: 1000,
+            minimum_height: 600,
+            window_resize_message:'你的浏览器窗口过小，请使用电脑作答，感谢配合。<br/>点击下方按钮即可结束实验。',
+            resize_fail_button_text: '结束实验',
+            exclusion_message: () => { return '你的显示窗口过小，请调大显示窗口或者切换电脑作答。' }
+        };
+
+        var enter_fullscreen = {
+            type: jsPsychFullscreen,
+            message: `
+                <p style="font: 16pt 微软雅黑; text-align: left; line-height: 1.6em">
+                <b>
+                测验将在一个「全屏页面」开始，为确保最佳效果，请你：<br/>
+                （1）在电脑上进行测验，并使用主流浏览器打开本网页<br/>
+                &emsp;&emsp;（Chrome、Edge、Firefox、Safari等，不要用IE）<br/>
+                （2）关掉电脑上其他正在运行的程序或将其最小化<br/>
+                （3）将手机调至静音，并尽可能减少环境噪音干扰<br/>
+                （4）在测验过程中不要退出全屏<br/>
+                （5）务必认真作答<br/><br/>
+                </b>
+                如果你同意参与，并且清楚理解了上述要求，请点击开始：
+                </p>`,
+            button_label:'点击这里全屏开始',
+            fullscreen_mode: true,
+            delay_after: 100
+        }
+
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+
+        var agreement = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <div class='cover-title'>
+                        欢迎参与<br/>择偶复制实验
+                    </div>
+                    <div class='cover-text'>
+                        <p></p>
+                        <p>我们承诺所有数据仅用作学术研究，不会泄露关于您的任何隐私，因此答题过程中请务必认真作答。</p>
+                    </div>
+                    <input class="form-check-input" type="checkbox" id='checkbox'>
+                    <label class="form-check-label">
+                        我已理解上述内容，同意开始评测
+                    </label>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+            on_load: function () {
+                var submitBtn = document.getElementById('jspsych-instructions-next');
+                submitBtn.disabled = true;
+                var box = document.getElementById('checkbox');
+                box.addEventListener("change", function(){
+                    if (box.checked===true) {
+                        submitBtn.disabled=false;
+                    }else{
+                        submitBtn.disabled=true;
+                    }
+                })
+            }
+        };
+
+        var info = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: "",
+            html: ` <p class='h2' style='color:black'>基本信息</p>
+                        <div class='row'>
+                            <div class='col auto'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>姓名</span>
+                                    <input class='form-control' type='text' name='name' required/>
+                                </div>
+                            </div>
+
+                            <div class='col auto'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>性别</span>
+                                    <select class='form-select' name='gender' required/>        
+                                        <option value=''></option>
+                                        <option value='1'>男</option>
+                                        <option value='0'>女</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>年龄</span>
+                                    <input class='form-control' type='number' name='age' required/>
+                                </div>
+                            </div>
+
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>年级</span>
+                                    <select class='form-select' name='grade' required/>        
+                                        <option value=''></option>
+                                        <option value='0'>本科生</option>
+                                        <option value='1'>研究生</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>性取向</span>
+                                    <select class='form-select' name='sex' required/>
+                                        <option value=''></option>
+                                        <option value='0'>异性恋</option>
+                                        <option value='1'>同性恋</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>目前状态</span>
+                                    <select class='form-select' name='status' required/>        
+                                        <option value=''></option>
+                                        <option value='0'>单身</option>
+                                        <option value='1'>恋爱中</option>
+                                        <option value='2'>已婚</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>父母感情</span>
+                                    <select class='form-select' name='parents' required>
+                                    <option value=''></option>
+                                    <option value='0'>离异</option>
+                                    <option value='1'>很差</option>
+                                    <option value='2'>一般</option>
+                                    <option value='3'>幸福</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>来源地</span>
+                                    <select class='form-select' name='home' required>
+                                    <option value=''></option>
+                                    <option value='0'>农村户口</option>
+                                    <option value='1'>城镇户口</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>童年的主要抚养者</span>
+                                    <select class='form-select' name='babycare' required/>        
+                                        <option value=''></option>
+                                        <option value='0'>爸爸妈妈</option>
+                                        <option value='1'>爷爷奶奶</option>
+                                        <option value='2'>外公外婆</option>
+                                        <option value='3'>保姆阿姨</option>
+                                        <option value='4'>其他亲戚</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>`,
+            button_label: '提交',
+            dataAsArray: true,
+            autofocus: 'test-resp-box',
+            data:{task:'info'},
+        };
+
+        var instruction = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <div class='h1'>指导语</div>
+                    <div class='cover-text'>
+                        <p>
+                            首先，屏幕中央会出现“+”的注视点，待注视点消失后在同样的位置会出现一张异性面孔图片，
+                            <span class='lighting'>需要您根据自己的喜好对异性面孔的吸引力进行1-9级评分</span>，1代表吸引力非常小，9代表吸引力非常大，评分完成后屏幕自动跳到下一页；
+                        </p>
+                        <p>
+                            下一页屏幕中央会出现一张女性剪影图片，同时在图片的上方标注该剪影人物和您的关系信息，<span class='lighting'>请您仔细阅读信息然后按【Enter】键跳转到下一页亲密关系距离评估界面</span>；
+                        </span>
+                        <p>
+                            评估完成后在屏幕中会呈现最开始出现的异性面孔和刚刚出现过的剪影配对图片，并在下方标注两人关系状态，
+                            <span class='lighting'>您理解后按【Enter】键在屏幕中会再次出现同一张异性面孔图片，请您再次对面孔吸引力进行评分。</span>
+                        </p>
+                    </div>
+                    <div class='ready'>
+                        <如有不明白可随时询问主试，如果准备好了请点击开始👇>
+                    </div>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+
+        function main_trial(timeline_variables) {
+            var trials = {
+                timeline:[
+                    {
+                        type: jsPsychHtmlKeyboardResponse,
+                        stimulus: '+',
+                        choices: "NO_KEYS",
+                        trial_duration: 500
+                    },
+                    { 
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: function () {
+                            var html = `<img src='${jsPsych.timelineVariable('imgs')}'>
+                                    <p class='attract'>该异性对您来说吸引力评分是</p>
+                                    <p class='tips'>(1代表吸引力非常小，9代表吸引力非常大)</p>`
+                            return html
+                        },
+                        choices: ['1','2','3','4','5','6','7','8','9'],
+                        data:{task:'pre_test',imgs:jsPsych.timelineVariable('imgs')}
+                    },
+                    {
+                        type: jsPsychInstructions,
+                        pages: [jsPsych.timelineVariable('cond2')],
+                        button_label_next: "下一页",
+                        show_clickable_nav: true,
+                        allow_backward: false,
+                        on_finish: function (data) {
+                            var splitArray = html.split("<span class='lighting'>");
+                            var content = splitArray[1].split('</span>')[0];
+                            data.task = content
+                        }
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: `<p class='attract'>以下有两个圆圈，一个代表你自己，一个代表刚刚你想象中的她，重叠部分代表你们的亲密程度，
+                                    重叠部分越大代表你们之间越亲密，请选择以下哪个可以代表你们之间的亲密度</p>
+                                    <img src='imgs/distance.png' width=85%>`,
+                        choices: ['1','2','3','4','5','6','7'],
+                        data:{task:'distance'}
+                    },
+                    {
+                        type: jsPsychInstructions,
+                        pages: [
+                            function () {
+                                var html = `<img src='${jsPsych.timelineVariable('imgs')}'>&nbsp;&nbsp;<img src='imgs/woman.png'>
+                                    <p class='attract'>在一次活动中两人认识，${jsPsych.timelineVariable('cond1')}</p>`
+                                return html
+                            },],
+                        button_label_next: "下一页",
+                        show_clickable_nav: true,
+                        allow_backward: false
+                    },
+                    {
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: function () {
+                            var html = `<img src='${jsPsych.timelineVariable('imgs')}'>
+                                <p class='attract'>该异性对您来说吸引力评分是</p>
+                                <p class='tips'>(1代表吸引力非常小，9代表吸引力非常大)</p>`
+                            return html
+                        },
+                        choices: ['1','2','3','4','5','6','7','8','9'],
+                        data:{task:'post_test',imgs:jsPsych.timelineVariable('imgs')}
+                    },
+                    
+                ],
+                timeline_variables: timeline_variables,
+            }
+            return trials
+        }
+
+        var cond2 = [
+                function () {
+                    var html = `<p class='attract'>请想象图片中的人是你的 <span class='lighting'>闺蜜</span> ，
+                                回忆你和她之间发生的印象深刻的事件，并在纸上写下她的昵称或者名字</p>
+                                <img src='imgs/woman.png'>`
+                    return html
+                },
+                function () {
+                    var html = `<p class='attract'>请想象图片中的人是你 <span class='lighting'>喜欢的明星/小说人物</span> ，
+                                回忆你对她印象最深刻的画面，并在纸上写下她的昵称或名字</p>
+                                <img src='imgs/woman.png'>`
+                    return html
+                },
+                function () {
+                    var html = `<p class='attract'>请想象图片中的她与你 <span class='lighting'>素不相识</span> </p>
+                                <img src='imgs/woman.png'>`
+                    return html
+                }]
+
+        var accept_factors = {
+            imgs: ['imgs/lma-1.jpg','imgs/lma-2.jpg','imgs/nma-5.jpg','imgs/nma-6.png','imgs/pma-10.png','imgs/pma-9.png'],
+            cond1: [`她 <span class='lighting'>接受</span> 了该男生的追求并发展为恋人关系`],
+            cond2: cond2
+        }
+
+        var reject_factors = {
+            imgs:['imgs/lmj-3.png','imgs/lmj-4.jpg','imgs/nmj-7.jpg','imgs/nmj-8.jpg','imgs/pmj-11.png','imgs/pmj-12.png'],
+            cond1: [`她 <span class='lighting'>拒绝</span> 了该男生的追求`],
+            cond2: cond2
+        }
+
+        var accpet = jsPsych.randomization.factorial(accept_factors, 1)
+        var reject = jsPsych.randomization.factorial(reject_factors, 1)
+        var all_factors = accpet.concat(reject)
+
+        var full_design = jsPsych.randomization.shuffleNoRepeats(all_factors, function(a,b) { return a.imgs === b.imgs })
+
+        var practise_factor = [{
+            imgs:'imgs/practise.png',
+            cond1:`她 <span class='lighting'>接受</span> 了该男生的追求并发展为恋人关系`,
+            cond2: function () {
+                var html = `<p class='attract'>请想象图片中的人是你的 <span class='lighting'>闺蜜</span> ，
+                            回忆你和她之间发生的印象深刻的事件，并在纸上写下她的昵称或者名字</p>
+                            <img src='imgs/woman.png'>`
+                jsPsych.data.addProperties({task:'闺蜜'})
+                return html
+            },}]
+
+        var pra_question = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<div class="h2">若对实验程序已经明白按“enter”开始正式实验，<br/>不明白可按“q”再练习一次或询问主试</div>',
+            data:{task:'pra_question'}
+        }
+
+        var pra_loop = {
+            timeline: [main_trial(practise_factor),pra_question],
+            loop_function: function(data){
+                if(jsPsych.pluginAPI.compareKeys(jsPsych.data.get().last(1).values()[0].response, 'q')){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        function html_scale(scale_list) {
+            var scale_html = `<div class='instruction'>${scale_list[0]}</div>
+                                <div class='row'>`
+            for (var l = 1;l< scale_list.length-1;l++){
+                scale_html += `<label class="form-label">${scale_list[l]}</label>
+                                    <div class="btn-group">`
+
+                var options = scale_list[scale_list.length - 1];
+
+                for (var i = 0; i < options.length; i++) {
+                    scale_html += `
+                        <input type="radio" class="btn-check" name="scale_${l}" id="scale_${l}${i+1}" value="${i+1}" required>
+                        <label class="btn btn-outline-primary" for="scale_${l}${i+1}">${options[i]}</label>
+                    `;}
+                scale_html += '</div>';
+            }
+            scale_html += '</div>'
+            return scale_html
+        };
+
+        empathy_list = [
+            '请仔细阅读下面题目，选择与自身最恰当的选项',
+            '1. 对那些比我不幸的人，我经常有心软和关怀的感觉。',
+            '2. 有时候当其他人有困难或问题时，我并不为他们感到难过。',
+            '4. 在紧急的状况中，我感到担忧、害怕而难以平静。',
+            '5. 在看电影或看戏时，我通常是旁观的，而且不经常全心投入。',
+            '6. 在做决定前，我试着从争论中去看每个人的立场。',
+            '7. 当我看到有人被别人利用时，我有点感到想要保护他们。',
+            '8. 当我处于一个情绪非常激动的情况中时，我往往感到会无依无靠，不知如何是好。',
+            '9. 有时我想像从我朋友的观点来看事情的样子，以便更了解他们。',
+            '10. 对我来说,全心的投入一本好书或一部好电影中是很少有的事。',
+            '11. 其他人的不幸通常不会给我带来很大的困扰。',
+            '12. 看完戏或电影之后，我觉得自己好像是剧中的某个角色。',
+            '13. 处在紧张情绪的状况中，我会惊慌害怕。',
+            '14. 当我看到有人受到不公平的对待时，我有时并不感到非常同情他们。',
+            '15. 我相信每个问题都有两面观点，所以我尝试着从这不同的观点来看问题。',
+            '16. 我认为自己是一个相当软心肠的人。',
+            '17. 当我欣赏一部好电影时，我很容易站在某个主角的立场去感受他的心情。',
+            '18. 在紧急状况中，我紧张的几乎无法控制自己。',
+            '19. 当我对一个人生气时，我通常会尝试着去想一下他的立场。',
+            '20. 当我阅读一篇引人的故事或小说时，我想像着:如果故事中的事件发生在我身上，我会感觉怎么样?',
+            '21. 当我看到有人发生意外需要帮助的时候，我紧张的几乎精神崩溃。',
+            '22. 在批评别人前我会试着想象: 假如我处在他的情况，我的感受如何。',
+            ['不恰当','有一点恰当','还算恰当','恰当','很恰当']
+        ]
+        
+        var empathy_scale = {
+            type: jsPsychSurveyHtmlForm,    
+            preamble: '',
+            html: html_scale(empathy_list),
+            button_label: '下一页',
+            autofocus: 'test-resp-box',
+            data:{task:'empathy_scale'}
+        }
+
+        var app_scale = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: "",
+            html: ` <p class='h2' style='color:black'>请填写以下信息</p>
+                        <div class='row'>
+                            <label class='form-label'>1. 常用媒体app的种类【多选】</label>
+                            <div class="btn-group" >
+                                <input type="checkbox" class="btn-check" id="douyin" name='douyin'>
+                                <label class="btn btn-outline-primary" for="douyin">抖音</label>
+
+                                <input type="checkbox" class="btn-check" id="xiaohongshu" name='xiaohongshu'>
+                                <label class="btn btn-outline-primary" for="xiaohongshu">小红书</label>
+
+                                <input type="checkbox" class="btn-check" id="kuaishou" name='kuaishou'>
+                                <label class="btn btn-outline-primary" for="kuaishou">快手</label>
+
+                                <input type="checkbox" class="btn-check" id="xiaoshou" name='xiaoshuo' >
+                                <label class="btn btn-outline-primary" for="xiaoshou">小说软件</label>
+
+                                <input type="checkbox" class="btn-check" id="others1" name='others1'>
+                                <label class="btn btn-outline-primary" for="others1">其它</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>2. 常看的视频类型【多选】</label>
+                            <div class="btn-group" >
+                                <input type="checkbox" class="btn-check" id="jianshen" name='jianshen'>
+                                <label class="btn btn-outline-primary" for="jianshen">健身</label>
+
+                                <input type="checkbox" class="btn-check" id="meizhuang" name='meizhuang'>
+                                <label class="btn btn-outline-primary" for="meizhuang">美妆</label>
+
+                                <input type="checkbox" class="btn-check" id="chuanda" name='chuanda'>
+                                <label class="btn btn-outline-primary" for="chuanda">穿搭</label>
+
+                                <input type="checkbox" class="btn-check" id="qinggan" name='qinggan' >
+                                <label class="btn btn-outline-primary" for="qinggan">情感</label>
+
+                                <input type="checkbox" class="btn-check" id="gaoxiao" name='gaoxiao' >
+                                <label class="btn btn-outline-primary" for="gaoxiao">搞笑</label>
+
+                                <input type="checkbox" class="btn-check" id="others2" name='others2'>
+                                <label class="btn btn-outline-primary" for="others2">其它</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>3. 常阅读的小说类型【多选】</label>
+                            <div class="btn-group" >
+                                <input type="checkbox" class="btn-check" id="yanqing" name='yanqing'>
+                                <label class="btn btn-outline-primary" for="yanqing">言情</label>
+
+                                <input type="checkbox" class="btn-check" id="dushi" name='meizhuang'>
+                                <label class="btn btn-outline-primary" for="dushi">都市</label>
+
+                                <input type="checkbox" class="btn-check" id="xiaoyuan" name='xiaoyuan'>
+                                <label class="btn btn-outline-primary" for="xiaoyuan">校园</label>
+
+                                <input type="checkbox" class="btn-check" id="tongren" name='tongren' >
+                                <label class="btn btn-outline-primary" for="tongren">同人</label>
+
+                                <input type="checkbox" class="btn-check" id="danmei" name='danmei' >
+                                <label class="btn btn-outline-primary" for="danmei">耽美</label>
+
+                                <input type="checkbox" class="btn-check" id="xuanyi" name='xuanyi' >
+                                <label class="btn btn-outline-primary" for="xuanyi">悬疑</label>
+
+                                <input type="checkbox" class="btn-check" id="kongbu" name='kongbu' >
+                                <label class="btn btn-outline-primary" for="kongbu">恐怖</label>
+
+                                <input type="checkbox" class="btn-check" id="lishi" name='lishi' >
+                                <label class="btn btn-outline-primary" for="lishi">历史</label>
+
+                                <input type="checkbox" class="btn-check" id="others3" name='others3'>
+                                <label class="btn btn-outline-primary" for="others3">其它</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>4. 观看此类视频/阅读此类小说/目的【多选】</label>
+                            <div class="btn-group" >
+                                <input type="checkbox" class="btn-check" id="dafashijian" name='dafashijian'>
+                                <label class="btn btn-outline-primary" for="dafashijian">打发时间娱乐</label>
+
+                                <input type="checkbox" class="btn-check" id="xuexijiqiao" name='xuexijiqiao'>
+                                <label class="btn btn-outline-primary" for="xuexijiqiao">学习恋爱技巧</label>
+
+                                <input type="checkbox" class="btn-check" id="other4" name='other4'>
+                                <label class="btn btn-outline-primary" for="other4">其它</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>5. 常用app的使用频率【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='app_usetime' id='congbu1' value='1' required>
+                                <label class='btn btn-outline-primary' for='congbu1'>从不</label>
+                                
+                                <input type='radio' class='btn-check' name='app_usetime' id='ouer1' value='2'>
+                                <label class='btn btn-outline-primary' for='ouer1'>偶尔</label>
+
+                                <input type='radio' class='btn-check' name='app_usetime' id='youshi1' value='3'>
+                                <label class='btn btn-outline-primary' for='youshi1'>有时</label>
+
+                                <input type='radio' class='btn-check' name='app_usetime' id='jingchang1' value='4'>
+                                <label class='btn btn-outline-primary' for='jingchang1'>经常</label>
+
+                                <input type='radio' class='btn-check' name='app_usetime' id='zongshi1' value='5'>
+                                <label class='btn btn-outline-primary' for='zongshi1'>总是</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>6. 对此类视频/小说等喜爱程度【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='like_app' id='feichangbuxihuan' value='1' required>
+                                <label class='btn btn-outline-primary' for='feichangbuxihuan'>非常不喜欢</label>
+                                
+                                <input type='radio' class='btn-check' name='like_app' id='butaixihuan' value='2'>
+                                <label class='btn btn-outline-primary' for='butaixihuan'>不太喜欢</label>
+
+                                <input type='radio' class='btn-check' name='like_app' id='yiban' value='3'>
+                                <label class='btn btn-outline-primary' for='yiban'>一般</label>
+
+                                <input type='radio' class='btn-check' name='like_app' id='bijiaoxihuan' value='4'>
+                                <label class='btn btn-outline-primary' for='bijiaoxihuan'>比较喜欢</label>
+
+                                <input type='radio' class='btn-check' name='like_app' id='feichangxihuan' value='5'>
+                                <label class='btn btn-outline-primary' for='feichangxihuan'>非常喜欢</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>7. 将人物角色情感带入自己的程度【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='inside' id='congbu2' value='1' required>
+                                <label class='btn btn-outline-primary' for='congbu2'>从不</label>
+                                
+                                <input type='radio' class='btn-check' name='inside' id='ouer2' value='2'>
+                                <label class='btn btn-outline-primary' for='ouer2'>偶尔</label>
+
+                                <input type='radio' class='btn-check' name='inside' id='youshi2' value='3'>
+                                <label class='btn btn-outline-primary' for='youshi2'>有时</label>
+
+                                <input type='radio' class='btn-check' name='inside' id='jingchang2' value='4'>
+                                <label class='btn btn-outline-primary' for='jingchang2'>经常</label>
+
+                                <input type='radio' class='btn-check' name='inside' id='zongshi2' value='5'>
+                                <label class='btn btn-outline-primary' for='zongshi2'>总是</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>8. 参与网络婚恋问题讨论的频率【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='marr_conver' id='congbu3' value='1' required>
+                                <label class='btn btn-outline-primary' for='congbu3'>从不</label>
+                                
+                                <input type='radio' class='btn-check' name='marr_conver' id='ouer3' value='2'>
+                                <label class='btn btn-outline-primary' for='ouer3'>偶尔</label>
+
+                                <input type='radio' class='btn-check' name='marr_conver' id='youshi3' value='3'>
+                                <label class='btn btn-outline-primary' for='youshi3'>有时</label>
+
+                                <input type='radio' class='btn-check' name='marr_conver' id='jingchang3' value='4'>
+                                <label class='btn btn-outline-primary' for='jingchang3'>经常</label>
+
+                                <input type='radio' class='btn-check' name='marr_conver' id='zongshi3' value='5'>
+                                <label class='btn btn-outline-primary' for='zongshi3'>总是</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>9. 是否使用过恋爱交友软件【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='mate_app' id='yes1' value='1' required>
+                                <label class='btn btn-outline-primary' for='yes1'>是</label>
+                                
+                                <input type='radio' class='btn-check' name='mate_app' id='no1' value='0'>
+                                <label class='btn btn-outline-primary' for='no1'>否</label>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <label class='form-label'>10. 是否需要学校提供恋爱交友指导相关课程【单选】</label>
+                            <div class='btn-group'>
+                                <input type='radio' class='btn-check' name='mate_class' id='yes2' value='1' required>
+                                <label class='btn btn-outline-primary' for='yes2'>是</label>
+                                
+                                <input type='radio' class='btn-check' name='mate_class' id='no2' value='0'>
+                                <label class='btn btn-outline-primary' for='no2'>否</label>
+                            </div>
+                        </div>
+                        `,
+            button_label: '下一页',
+            dataAsArray: true,
+            autofocus: 'test-resp-box',
+            data:{task:'app_scale'},
+        };
+
+        var open_scale = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: "",
+            html: ` <p class='h2' style='color:black'>请填回答以下问题</p>
+                    <div class='row'>
+                        <label class='form-label'>1. 你觉得自己需要伴侣吗？你理想中的伴侣是什么样子？请简单描述一下</label>
+                    </div>
+                    <textarea class="form-control" name='need_mate' required></textarea>
+
+                    <div class='row'>
+                        <label class='form-label'>2. 你觉得短视频、电视剧、小说等对你的择偶有影响吗？体现在哪些方面呢？（身高、长相、性格、家世、体贴入微的照顾等可展开说说）</label>
+                    </div>
+                    <textarea class="form-control" name='influence' required></textarea>
+                    
+                    <div class='row'>
+                        <label class='form-label'>3. 你会考虑要几个宝宝？</label>
+                    </div>
+                    <textarea class="form-control" name='babys' required></textarea>`,
+            button_label: '下一页',
+            dataAsArray: true,
+            autofocus: 'test-resp-box',
+            data:{task:'open_scale'},
+        };
+
+        var end = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus:`<h1 style='line-height:2.7rem'>实验结束，感谢您的参与！<br/>祝您有个美好的一天🌞！</h1>`,
+            trial_duration: 3000,
+            choices: "NO_KEYS",
+        }
+
+        var exit_fullscreen = {
+            type: jsPsychFullscreen,
+            fullscreen_mode: false,
+            delay_after: 0,
+        }
+
+        timeline = [
+            brower,
+            enter_fullscreen,
+            set_style,
+            // agreement,
+            // instruction,
+            // pra_loop,
+            // main_trial(full_design),
+            // empathy_scale,
+            // app_scale,
+            // open_scale,
+            info,
+            end,
+            exit_fullscreen
+        ]
+        jsPsych.run(timeline)
+    </script>
+</html>

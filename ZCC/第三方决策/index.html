@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>第三方决策</title>
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css" />
+        <link href="css/style.css" rel="stylesheet" type="text/css" />
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+        <script src="js/jspsych.js"></script>
+        <script src="js/plugin-browser-check.js"></script>
+        <script src="js/plugin-call-function.js"></script>
+        <script src="js/plugin-instructions.js"></script>
+        <script src="js/plugin-fullscreen.js"></script>
+        <script src="js/plugin-html-keyboard-response.js"></script>
+        <script src="js/plugin-html-button-response.js"></script>
+        <script src="js/plugin-survey-html-form.js"></script>
+        <script src="js/plugin-survey.js"></script>
+        <script src="js/plugin-survey-multi-choice.js"></script>
+    </head>
+
+    <body></body>
+
+    <script>
+        const nowdate = new Date(),
+            month = nowdate.getMonth(),
+            date = nowdate.getDate(),
+            hour = nowdate.getHours(),
+            minutes = nowdate.getMinutes()
+
+        const file_name = month + 1 + '_' + date + '_' + hour + '_' + minutes
+
+        const jsPsych = initJsPsych({
+            on_finish: function () {
+                jsPsych.data.get().localSave('json', `${file_name}.json`);
+            }
+        });
+
+
+        var brower = {
+            type: jsPsychBrowserCheck,
+            minimum_width: 1000,
+            minimum_height: 600,
+            window_resize_message:'你的浏览器窗口过小，请使用电脑作答，感谢配合。<br/>点击下方按钮即可结束实验。',
+            resize_fail_button_text: '结束实验',
+            exclusion_message: () => { return '你的显示窗口过小，请调大显示窗口或者切换电脑作答。' }
+        };
+
+        var enter_fullscreen = {
+            type: jsPsychFullscreen,
+            message: `
+                <p style="font: 16pt 微软雅黑; text-align: left; line-height: 1.6em">
+                <b>
+                测验将在一个「全屏页面」开始，为确保最佳效果，请你：<br/>
+                （1）在电脑上进行测验，并使用主流浏览器打开本网页<br/>
+                &emsp;&emsp;（Chrome、Edge、Firefox、Safari等，不要用IE）<br/>
+                （2）关掉电脑上其他正在运行的程序或将其最小化<br/>
+                （3）将手机调至静音，并尽可能减少环境噪音干扰<br/>
+                （4）在测验过程中不要退出全屏<br/>
+                （5）务必认真作答<br/><br/>
+                </b>
+                如果你同意参与，并且清楚理解了上述要求，请点击开始：
+                </p>`,
+            button_label:'点击这里全屏开始',
+            fullscreen_mode: true,
+            delay_after: 100
+        }
+
+        var set_style = {
+            type: jsPsychCallFunction,
+            func: function () {
+                document.body.style.backgroundColor = 'black' // background color
+                document.body.style.color = 'white' // font color
+                document.body.style.fontFamily = '微软雅黑'
+                document.body.style.cursor = 'default' // 'default', 'none', 'wait', ...
+                document.body.onselectstart = function () { return false } // 禁止选中文字 <body oncontextmenu="return false">
+                document.body.oncontextmenu = function () { return false } // 禁用鼠标右键 <body onselectstart="return false">
+                document.onkeydown = function () {
+                    // 屏蔽键盘按键 (https://www.bejson.com/othertools/keycodes/)
+                    if ((event.keyCode in { 27: 'Esc', 116: 'F5', 123: 'F12' }) ||
+                        (event.ctrlKey && event.keyCode in { 85: 'U' })
+                    ) {
+                        return false
+                    }
+                }
+            },
+        }
+
+        var info = {
+            type: jsPsychSurveyHtmlForm,
+            preamble: "",
+            html: ` <p class='h2'>基本信息</p>
+                        <div class='row'>
+                            <div class='col auto'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>姓名</span>
+                                    <input class='form-control' type='text' name='name' required/>
+                                </div>
+                            </div>
+
+                            <div class='col auto'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>性别</span>
+                                    <select class='form-select' name='gender' required/>        
+                                        <option value=''></option>
+                                        <option value='1'>男</option>
+                                        <option value='0'>女</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>年龄</span>
+                                    <input class='form-control' type='number' name='age' required/>
+                                </div>
+                            </div>
+
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>年级</span>
+                                    <select class='form-select' name='grade' required/>        
+                                        <option value=''></option>
+                                        <option value='0'>本科生</option>
+                                        <option value='1'>研究生</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='input-group mb-2'>
+                                    <span class='input-group-text'>来源地</span>
+                                    <select class='form-select' name='home' required>
+                                    <option value=''></option>
+                                    <option value='0'>农村户口</option>
+                                    <option value='1'>城镇户口</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>`,
+            button_label: '提交',
+            dataAsArray: true,
+            autofocus: 'test-resp-box',
+            data:{task:'info'},
+        };
+
+        var agreement = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <div class='cover-title'>
+                        欢迎参与实验
+                    </div>
+                    <div class='cover-text'>
+                        <p>本实验共包含四个部分，约15-20分钟完成。实验结束后，我们将根据您的认真程度给予被试费，请务必认真作答。</p>
+                        <p class='lighting'>你将参加一个分配共同劳动报酬的游戏。该游戏需要对100元钱进行分配，游戏包括3个角色：分配者A、接受者B、旁观者C。</p>
+                        <p>我们承诺所有数据仅用作学术研究，不会泄露关于您的任何隐私，因此答题过程中请务必认真作答。</p>
+                    </div>
+                    <input class="form-check-input" type="checkbox" id='checkbox'>
+                    <label class="form-check-label">
+                        我已理解上述内容，同意开始评测
+                    </label>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+            on_load: function () {
+                var submitBtn = document.getElementById('jspsych-instructions-next');
+                submitBtn.disabled = true;
+                var box = document.getElementById('checkbox');
+                box.addEventListener("change", function(){
+                    if (box.checked===true) {
+                        submitBtn.disabled=false;
+                    }else{
+                        submitBtn.disabled=true;
+                    }
+                })
+            }
+        };
+
+        var actor = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: `<h2>角色分配中</h2><div class='spinner-border text-light m-5' role='status'><span class='visually-hidden'>loading</span></div> `,
+                    choices: "NO_KEYS",
+                    trial_duration: 1000,
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus:`<h2>您的角色为：<span class='lighting'>旁观者C</span></h2>`,
+                    trial_duration: 3000,
+                    choices: "NO_KEYS",
+                }
+
+            ]
+
+        }
+
+        var exp1_instr = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <p class='h1'>实验一</p>
+                    <div class='cover-text'>
+                       <p>
+                            <span class='lighting'>A和B在共同完成一项任务、付出同样的劳动</span>后获得100元报酬，
+                            <span class='lighting'>分配者A进行分配</span>，需要将这100元分配给自己和接受者B，
+                            <span class='lighting'>而接受者B无权拒绝</span>，只能接受。
+                        </p>
+                        <p>
+                            <span class='lighting'>旁观者C事先拥有50元</span>，不参与这100元分配，
+                            但是C可以在A进行分配后<span class='lighting'>选择是否对分配方案进行调整</span>。
+                        </p>
+                        <p>
+                            调整规则如下：旁观者C有权从自己的50元钱中
+                            <span class='lighting'>拿出一定的钱数X元去扣除分配者A钱数的3X元</span>作为惩罚。
+                        </p>
+                    </div>
+                    <p class='ready'>
+                        <阅读明白后请点击开始👇>
+                    </p>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+
+        var exp1 = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<p style="font-size:60px;font-weight:bolder">+</p>',
+                    choices: "NO_KEYS",
+                    trial_duration: 1000
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var html = `<div class="container text-center">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                    <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    data:{task:function () {
+                        var html = `${jsPsych.timelineVariable('a_money')}:${jsPsych.timelineVariable('b_money')}`
+                        return html
+                        }
+                    },
+                    trial_duration: 2000,
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>是否选择减少A钱数？</p>`,
+                    choices: ['是','否'],
+                    button_html:'<button class="jspsych-btn" id="jspsych-btn-choice">%choice%</button>',
+                    data:{task:'choice1'}
+                },
+            ],
+        }
+
+        var exp1_choice_trial = {
+            timeline:[
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>c选择拿出多少？</p>`,
+                    choices: ['5','10','15','20','25','30','35'],
+                    data:{task:'money'}
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var choice1 = jsPsych.data.get().last(1).values()[0].response;
+                        var html = `
+                            <div class='h1' style='text-align:left'>结果反馈</div>
+                            <p></p>
+                            <div class="container text-center">
+                                <div class="row g-3">
+                                    <div class="col-4">
+                                        <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">分配者C</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('a_money')-3*(choice1+1)*5}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('c_money')-(choice1+1)*5}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    trial_duration: 1000
+                }
+            ]
+        }
+
+        var exp1_if = {
+            timeline: [exp1_choice_trial],
+            conditional_function: function(){
+                var data = jsPsych.data.get().last(1).values()[0].response;
+                if(data==1){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        var ready = {
+            type: jsPsychInstructions,
+            pages: [
+                `<p class='h2'>接下来会有两个预实验试次，如果准备好了请点击开始</p>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        }
+
+        var ready_end = {
+            type: jsPsychHtmlButtonResponse,
+            stimulus: `<p class='h2'>练习结束！</p>`,
+            choices: ['不甚明晰！继续练习','一清二楚，进入实验'],
+            data:{task:'ready'}
+        }
+
+        var pre_main_exp1 = {
+            timeline:[exp1,exp1_if],
+            timeline_variables: [
+                {a_money:65,b_money:35,c_money:50},
+                {a_money:75,b_money:25,c_money:50},
+            ],
+            data:{task:'ready'}
+        }
+
+        var pre_exp1 = {
+            timeline: [pre_main_exp1,ready_end],
+            loop_function: function(data){
+                if(jsPsych.data.get().last(1).values()[0].response==0){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        var main_exp1 = {
+            timeline:[exp1,exp1_if],
+            repetitions: 4,
+            randomize_order: true,
+            timeline_variables: [
+                {a_money:100,b_money:0,c_money:50},
+                {a_money:90,b_money:10,c_money:50},
+                {a_money:80,b_money:20,c_money:50},
+                {a_money:70,b_money:30,c_money:50},
+                {a_money:60,b_money:40,c_money:50},
+                {a_money:50,b_money:50,c_money:50},
+            ],
+        }
+
+        var exp2_instr = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <p class='h1'>实验二</p>
+                    <div class='cover-text'>
+                       <p>
+                            <span class='lighting'>A和B在共同完成一项任务、付出同样的劳动</span>后获得100元报酬，
+                            <span class='lighting'>分配者A进行分配</span>，需要将这100元分配给自己和接受者B，
+                            <span class='lighting'>而接受者B无权拒绝</span>，只能接受。
+                        </p>
+                        <p>
+                            <span class='lighting'>旁观者C事先拥有50元</span>，不参与这100元分配，
+                            但是C可以在A进行分配后<span class='lighting'>选择是否对分配方案进行调整</span>。
+                        </p>
+                        <p>
+                            调整规则如下：旁观者C有权从自己的50元钱中
+                            <span class='lighting'>拿出一定的钱数X元去增加接受者B钱数的3X元</span>作为惩罚。
+                        </p>
+                    </div>
+                    <p class='ready'>
+                        <阅读明白后请点击开始👇>
+                    </p>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+
+        var exp2 = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<p style="font-size:60px;font-weight:bolder">+</p>',
+                    choices: "NO_KEYS",
+                    trial_duration: 1000
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var html = `<div class="container text-center">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                    <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    trial_duration: 2000,
+                    data:{task:function () {
+                        var html = `${jsPsych.timelineVariable('a_money')}:${jsPsych.timelineVariable('b_money')}`
+                        return html
+                        }
+                    },
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>是否选择增加B的钱数？</p>`,
+                    choices: ['是','否'],
+                    button_html:'<button class="jspsych-btn" id="jspsych-btn-choice">%choice%</button>',
+                    data:{task:'choice2'}
+                },
+            ],
+        }
+
+        var exp2_choice_trial = {
+            timeline:[
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>c选择拿出多少？</p>`,
+                    choices: ['5','10','15','20','25','30','35'],
+                    data:{task:'money'}
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var choice1 = jsPsych.data.get().last(1).values()[0].response;
+                        var html = `
+                        <div class='h1' style='text-align:left'>结果反馈</div>
+                            <div class="container text-center">
+                                <div class="row g-3">
+                                    <div class="col-4">
+                                        <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">分配者C</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('b_money')+3*(choice1+1)*5}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('c_money')-(choice1+1)*5}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    trial_duration: 1000
+                }
+            ]
+        }
+
+        var exp2_if = {
+            timeline: [exp2_choice_trial],
+            conditional_function: function(){
+                var data = jsPsych.data.get().last(1).values()[0].response;
+                if(data==1){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        var pre_main_exp2 = {
+            timeline:[exp2,exp2_if],
+            timeline_variables: [
+                {a_money:65,b_money:35,c_money:50},
+                {a_money:75,b_money:25,c_money:50},
+            ],
+            data:{task:'ready'}
+        }
+
+        var pre_exp2 = {
+            timeline: [pre_main_exp2,ready_end],
+            loop_function: function(data){
+                if(jsPsych.data.get().last(1).values()[0].response==0){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        var main_exp2 = {
+            timeline:[exp2,exp2_if],
+            repetitions: 4,
+            randomize_order: true,
+            timeline_variables: [
+                {a_money:100,b_money:0,c_money:50},
+                {a_money:90,b_money:10,c_money:50},
+                {a_money:80,b_money:20,c_money:50},
+                {a_money:70,b_money:30,c_money:50},
+                {a_money:60,b_money:40,c_money:50},
+                {a_money:50,b_money:50,c_money:50},
+            ],
+        }
+
+        var exp3_instr = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <p class='h1'>实验三</p>
+                    <div class='cover-text'>
+                       <p>
+                            <span class='lighting'>A和B在共同完成一项任务、付出同样的劳动</span>后获得100元报酬，
+                            <span class='lighting'>分配者A进行分配</span>，需要将这100元分配给自己和接受者B，
+                            <span class='lighting'>而接受者B无权拒绝</span>，只能接受。
+                        </p>
+                        <p>
+                            <span class='lighting'>旁观者C事先拥有50元</span>，不参与这100元分配，
+                            但是C可以在A进行分配后<span class='lighting'>选择是否对分配方案进行调整</span>。
+                        </p>
+                        <p>
+                            调整规则如下：旁观者C有权从自己的50元钱中
+                            <span class='lighting'>拿出一定的钱数X元去减少A或者增加接受者B钱数的3X元</span>。
+                        </p>
+                    </div>
+                    <p class='ready'>
+                        <阅读明白后请点击开始👇>
+                    </p>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+
+        var exp3 = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<p style="font-size:60px;font-weight:bolder">+</p>',
+                    choices: "NO_KEYS",
+                    trial_duration: 1000
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var html = `<div class="container text-center">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                    <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    trial_duration: 2000,
+                    data:{task:function () {
+                        var html = `${jsPsych.timelineVariable('a_money')}:${jsPsych.timelineVariable('b_money')}`
+                        return html
+                        }
+                    },
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>你的选择是保留？</p>`,
+                    choices: ['减少A','保留（不减少A也不增加B）','增加B'],
+                    button_html:'<button class="jspsych-btn" id="jspsych-btn-choice">%choice%</button>',
+                    data:{task:'choice3'}
+                },
+            ],
+        }
+
+        var exp3_choice_trial = {
+            timeline:[
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>c选择拿出多少？</p>`,
+                    choices: ['5','10','15','20','25','30','35'],
+                    data:{task:'money'}
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var choice1 = jsPsych.data.get().last(1).values()[0].response;
+                        var updown = jsPsych.data.get().last(2).values()[0].response;
+                        if (updown==0){
+                            var html = `
+                            <div class='h1' style='text-align:left'>结果反馈</div>
+                            <div class="container text-center">
+                                <div class="row g-3">
+                                    <div class="col-4">
+                                        <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">分配者C</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('a_money')-3*(choice1+1)*5}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('c_money')-(choice1+1)*5}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        } else {
+                            var html = `
+                            <div class='h1' style='text-align:left'>结果反馈</div>
+                            <div class="container text-center">
+                                <div class="row g-3">
+                                    <div class="col-4">
+                                        <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">分配者C</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('b_money')+3*(choice1+1)*5}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">${jsPsych.timelineVariable('c_money')-(choice1+1)*5}</div>
+                                    </div>
+                                </div>
+                            </div>`            
+                        }
+                        return html
+                    },
+                    trial_duration: 1000
+                }
+            ]
+        }
+
+        var exp3_if = {
+            timeline: [exp3_choice_trial],
+            conditional_function: function(){
+                var data = jsPsych.data.get().last(1).values()[0].response;
+                if(data==1){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        var pre_main_exp3 = {
+            timeline:[exp3,exp3_if],
+            timeline_variables: [
+                {a_money:65,b_money:35,c_money:50},
+                {a_money:75,b_money:25,c_money:50},
+            ],
+            data:{task:'ready'}
+        }
+
+        var pre_exp3 = {
+            timeline: [pre_main_exp3,ready_end],
+            loop_function: function(data){
+                if(jsPsych.data.get().last(1).values()[0].response==0){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        var main_exp3 = {
+            timeline:[exp3,exp3_if],
+            repetitions: 4,
+            randomize_order: true,
+            timeline_variables: [
+                {a_money:100,b_money:0,c_money:50},
+                {a_money:90,b_money:10,c_money:50},
+                {a_money:80,b_money:20,c_money:50},
+                {a_money:70,b_money:30,c_money:50},
+                {a_money:60,b_money:40,c_money:50},
+                {a_money:50,b_money:50,c_money:50},
+            ],
+        }
+
+        var exp4_instr = {
+            type: jsPsychInstructions,
+            pages: [
+                `<div class='cover'>
+                    <p class='h1'>实验四</p>
+                    <div class='cover-text'>
+                       <p>
+                            <span class='lighting'>A和B在共同完成一项任务、付出同样的劳动</span>后获得100元报酬，
+                            <span class='lighting'>分配者A进行分配</span>，需要将这100元分配给自己和接受者B，
+                            <span class='lighting'>而接受者B无权拒绝</span>，只能接受。
+                        </p>
+                        <p>
+                            <span class='lighting'>旁观者C事先拥有50元</span>，不参与这100元分配，
+                            但是C可以在A进行分配后<span class='lighting'>选择是否对分配方案进行调整</span>。
+                        </p>
+                        <p>
+                            调整规则如下：旁观者C有权从自己的50元钱中
+                            <span class='lighting'>拿出一定的钱数X元去减少A钱数的3X元并且拿出一定的钱数Y元增加接受者B钱数的3Y元</span>。
+                        </p>
+                    </div>
+                    <p class='ready'>
+                        <阅读明白后请点击开始👇>
+                    </p>
+                </div>`,
+            ],
+            show_clickable_nav: true,
+            allow_backward: false,
+            button_label_next: '开始',
+            allow_keys: false,
+        };
+
+        var exp4 = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<p style="font-size:60px;font-weight:bolder">+</p>',
+                    choices: "NO_KEYS",
+                    trial_duration: 1000
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var html = `<div class="container text-center">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                    <div class="p-3">分配者A</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">接受者B</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('a_money')}</div>
+                                    </div>
+                                    <div class="col-6">
+                                    <div class="p-3">${jsPsych.timelineVariable('b_money')}</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        return html
+                    },
+                    trial_duration: 2000,
+                    data:{task:function () {
+                        var html = `${jsPsych.timelineVariable('a_money')}:${jsPsych.timelineVariable('b_money')}`
+                        return html
+                        }
+                    },
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `<p class='h2'>是否选择改变分配方案</p>`,
+                    choices: ['改变','不改变'],
+                    button_html:'<button class="jspsych-btn" id="jspsych-btn-choice">%choice%</button>',
+                    data:{task:'choice4'}
+                },
+            ],
+        }
+
+        var exp4_choice_trial = {
+            timeline:[
+                {
+                    type: jsPsychSurveyHtmlForm,
+                    preamble: "",
+                    html: ` 
+                            <div class='h2'>C付出金额(总金额为50元)</div>
+                            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                                <span class="input-group-text" style='font-size:20px' >减少A</span>
+                                <input type="radio" class="btn-check" name="down_a" id="down_a1" value="0" required>
+                                <label class="btn btn-light btn-lg" for="down_a1">0</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a2" value="5">
+                                <label class="btn btn-light btn-lg" for="down_a2">5</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a3" value="10">
+                                <label class="btn btn-light btn-lg" for="down_a3">10</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a4" value="15">
+                                <label class="btn btn-light btn-lg" for="down_a4">15</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a5" value="20">
+                                <label class="btn btn-light btn-lg" for="down_a5">20</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a6" value="25">
+                                <label class="btn btn-light btn-lg" for="down_a6">25</label>
+
+                                <input type="radio" class="btn-check" name="down_a" id="down_a7" value="30">
+                                <label class="btn btn-light btn-lg" for="down_a7">30</label>
+                                
+                                <input type="radio" class="btn-check" name="down_a" id="down_a8" value="35">
+                                <label class="btn btn-light btn-lg" for="down_a8">35</label>
+                            </div>
+
+                            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                                <span class="input-group-text" style='font-size:20px'>增加B</span>
+                                <input type="radio" class="btn-check" name="up_b" id="up_b1" value="0" required>
+                                <label class="btn btn-light btn-lg" for="up_b1">0</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b2" value="5">
+                                <label class="btn btn-light btn-lg" for="up_b2">5</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b3" value="10">
+                                <label class="btn btn-light btn-lg" for="up_b3">10</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b4" value="15">
+                                <label class="btn btn-light btn-lg" for="up_b4">15</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b5" value="20">
+                                <label class="btn btn-light btn-lg" for="up_b5">20</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b6" value="25">
+                                <label class="btn btn-light btn-lg" for="up_b6">25</label>
+
+                                <input type="radio" class="btn-check" name="up_b" id="up_b7" value="30">
+                                <label class="btn btn-light btn-lg" for="up_b7">30</label>
+                                
+                                <input type="radio" class="btn-check" name="up_b" id="up_b8" value="35">
+                                <label class="btn btn-light btn-lg" for="up_b8">35</label>
+                            </div>`,
+                    button_label: '提交',
+                    dataAsArray: true,
+                    autofocus: 'test-resp-box',
+                    data:{task:'money'},
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        var downa = jsPsych.data.get().last(1).values()[0].response[0].value;
+                        var upb = jsPsych.data.get().last(1).values()[0].response[1].value
+                        var html = `
+                        <div class='h1' style='text-align:left'>结果反馈</div>
+                        <div class="container text-center">
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <div class="p-3">分配者A</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3">接受者B</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3">分配者C</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3">${jsPsych.timelineVariable('a_money')-3*downa}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3">${jsPsych.timelineVariable('b_money')+3*upb}</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3">${jsPsych.timelineVariable('c_money')-downa-upb}</div>
+                                </div>
+                            </div>
+                        </div>`
+                        return html
+                    },
+                    trial_duration: 1000
+                }
+            ]
+        }
+
+        var exp4_if = {
+            timeline: [exp4_choice_trial],
+            conditional_function: function(){
+                var data = jsPsych.data.get().last(1).values()[0].response;
+                if(data==1){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        var pre_main_exp4 = {
+            timeline:[exp4,exp4_if],
+            timeline_variables: [
+                {a_money:65,b_money:35,c_money:50},
+                {a_money:75,b_money:25,c_money:50},
+            ],
+            data:{task:'ready'}
+        }
+
+        var pre_exp4 = {
+            timeline: [pre_main_exp4,ready_end],
+            loop_function: function(data){
+                if(jsPsych.data.get().last(1).values()[0].response==0){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        var main_exp4 = {
+            timeline:[exp4,exp4_if],
+            repetitions: 4,
+            randomize_order: true,
+            timeline_variables: [
+                {a_money:100,b_money:0,c_money:50},
+                {a_money:90,b_money:10,c_money:50},
+                {a_money:80,b_money:20,c_money:50},
+                {a_money:70,b_money:30,c_money:50},
+                {a_money:60,b_money:40,c_money:50},
+                {a_money:50,b_money:50,c_money:50},
+            ],
+        }
+
+        function html_scale(scale_list) {
+            var scale_html = `<div class='instruction'>${scale_list[0]}</div>
+                                <div class='row'>`
+            for (var l = 1;l< scale_list.length-1;l++){
+                scale_html += `<label class="form-label">${scale_list[l]}</label>
+                                    <div class="btn-group">`
+
+                var options = scale_list[scale_list.length - 1];
+
+                for (var i = 0; i < options.length; i++) {
+                    scale_html += `
+                        <input type="radio" class="btn-check" name="scale_${l}" id="scale_${l}${i+1}" value="${i+1}" required>
+                        <label class="btn btn-light btn-lg" for="scale_${l}${i+1}">${options[i]}</label>
+                    `;}
+                scale_html += '</div>';
+            }
+            scale_html += '</div>'
+            return scale_html
+        };
+
+        fair_list = [
+            '你觉得以下的分配方案是否公平？',
+            '50：50',
+            '60：40',
+            '70：30',
+            '80：20',
+            '90：10',
+            '100：0',
+            ['非常不公平','不公平','比较不公平','有点不公平','有点公平','比较公平','公平','非常公平']
+        ]
+        
+        var fair_scale = {
+            type: jsPsychSurveyHtmlForm,    
+            preamble: '',
+            html: html_scale(fair_list),
+            button_label: '提交',
+            autofocus: 'test-resp-box',
+            data:{task:'fair'}
+        }
+
+        var end = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus:`<h1 style='line-height:2.7rem'>实验结束，感谢您的参与！<br/>祝您有个美好的一天🌞！</h1>`,
+            trial_duration: 3000,
+            choices: "NO_KEYS",
+        }
+
+        var exit_fullscreen = {
+            type: jsPsychFullscreen,
+            fullscreen_mode: false,
+            delay_after: 0,
+        }
+
+
+        timeline = [
+            enter_fullscreen,
+            set_style,
+            info,
+            agreement,
+            actor,
+            exp1_instr,
+            ready,
+            pre_exp1,
+            main_exp1,
+            exp2_instr,
+            ready,
+            pre_exp2,
+            main_exp2,
+            exp3_instr,
+            ready,
+            pre_exp3,
+            main_exp3,
+            exp4_instr,
+            ready,
+            pre_exp4,
+            main_exp4,
+            fair_scale,
+            end,
+            exit_fullscreen
+        ]
+
+        // jsPsych.simulate(timeline, "visual");
+        jsPsych.run(timeline)
+    </script>
+</html>
